@@ -55,7 +55,7 @@ include 'sidebar.php';
 </head>
 <body class="bg-gradient-to-b from-[#0B1526] to-[#1E3A5F] min-h-screen font-inter text-black">
   <div class="flex">
-    <main class="ml-[250px] flex-1 flex justify-center items-center p-6 md:p-10 min-h-screen">
+  <main class="flex-1 flex justify-center items-center p-6 md:p-10 min-h-screen ml-0 sm:ml-[250px]">
       <section class="bg-white rounded-md p-6 w-full max-w-4xl">
         <div class="border-b border-black pb-2 mb-4">
           <button class="bg-[#C7D9F9] border border-black rounded-md px-4 py-2 text-[14px] font-normal">Tambah Pelanggan</button>

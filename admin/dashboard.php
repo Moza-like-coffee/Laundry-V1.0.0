@@ -16,9 +16,10 @@ session_start();
   <?php include 'sidebar.php'; ?>
 
   <!-- Main content -->
-    <div id="mainContent" class="flex-1 flex flex-col p-8 md:ml-80 space-y-8">
+     <div id="mainContent" class="flex-1 flex flex-col p-8 ml-0 sm:ml-80 space-y-8">
 
-    <section class="max-w-4xl rounded-lg p-6 text-center text-white bg-gradient-to-r from-[#4b3399] to-[#9aa9f9]">
+
+     <section class="max-w-4xl rounded-lg p-6 text-center text-white bg-gradient-to-r from-[#4b3399] to-[#9aa9f9] mt-10 sm:mt-0">
       <p class="text-lg font-semibold">Halo <strong><?php echo htmlspecialchars($_SESSION['username']); ?></strong>!</p>
       <p class="text-sm mt-1">Anda login sebagai <strong><?php echo htmlspecialchars($_SESSION['role']); ?></strong></p>
     </section>
