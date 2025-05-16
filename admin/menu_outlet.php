@@ -237,7 +237,6 @@ function updateButtonStyles(activeButtonId) {
       updateButtonStyles('btnTambah');
   });
 
-  // Event listener untuk tombol "Hapus"
  // Event listener untuk tombol "Hapus"
 document.getElementById('btnHapus').addEventListener('click', function() {
     const container = document.getElementById('form-container');

@@ -34,6 +34,16 @@ $currentPage = basename($_SERVER['PHP_SELF']);
       <div class="ml-3">
         <div class="text-sm font-medium text-gray-900 leading-tight"><?php echo htmlspecialchars($username); ?></div>
         <div class="text-xs text-gray-400 leading-tight"><?php echo htmlspecialchars($role); ?></div>
+        <?php if ($role === 'kasir' || $role === 'owner'): ?>
+          <div class="text-xs text-gray-500 mt-1">
+            Outlet ID: <?php echo htmlspecialchars($_SESSION['id_outlet'] ?? 'N/A'); ?>
+          </div>
+        <?php endif; ?>
+        <?php if ($role === 'kasir'): ?>
+          <div class="text-xs text-gray-500 mt-1">
+            Kasir ID: <?php echo htmlspecialchars($_SESSION['user_id'] ?? 'N/A'); ?>
+          </div>
+        <?php endif; ?>
       </div>
     </div>
 
@@ -59,7 +69,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     <a href="menu_produk.php" class="flex items-center text-sm font-medium <?php echo $currentPage == 'menu_produk.php' ? 'text-[#6528F7] font-bold bg-gray-100 rounded-md px-2 py-1' : 'text-gray-900 hover:text-gray-700'; ?>">
       <i class="fas fa-box mr-3 text-lg"></i>Menu Produk
     </a>
-    <a href="menu_pengguna.php" class="flex items-center text-sm font-medium <?php echo $currentPage == 'menu_pengguna.php' ? 'text-[#6528F7] font-bold bg-gray-100 rounded-md px-2 py-1' : 'text-gray-900 hover:text-gray-700'; ?>">
+    <a href="menu_user.php" class="flex items-center text-sm font-medium <?php echo $currentPage == 'menu_user.php' ? 'text-[#6528F7] font-bold bg-gray-100 rounded-md px-2 py-1' : 'text-gray-900 hover:text-gray-700'; ?>">
       <i class="fas fa-user-plus mr-3 text-lg"></i>Menu Pengguna
     </a>
     <?php endif; ?>
