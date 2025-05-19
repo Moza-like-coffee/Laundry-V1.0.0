@@ -1,7 +1,35 @@
 <?php
 session_start();
 include '../database/connect.php';
+$allowed_roles = ['admin'];
+$user_role = $_SESSION['role'] ?? null;
 
+if (!in_array($user_role, $allowed_roles)) {
+  echo '
+  <html>
+  <head>
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
+  <body>
+      <script>
+          Swal.fire({
+              icon: "error",
+              title: "Akses Ditolak!",
+              text: "Anda tidak memiliki izin untuk mengakses halaman ini.",
+              timer: 2000,
+              timerProgressBar: true
+          });
+
+          // Redirect otomatis setelah 2 menit
+          setTimeout(() => {
+              window.location.href = "dashboard.php";
+          }, 2000);
+      </script>
+  </body>
+  </html>
+  ';
+  exit;
+}
 
 // Function to get ENUM values from a column
 function getEnumValues($mysqli, $table, $column) {

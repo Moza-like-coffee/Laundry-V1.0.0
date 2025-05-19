@@ -1,4 +1,24 @@
-<?php
+<?php 
+
+if (!isset($_SESSION['username']) || !isset($_SESSION['role'])) {
+    echo '<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>';
+    echo '<script>
+        document.addEventListener("DOMContentLoaded", function() {
+            Swal.fire({
+                title: "Login Required",
+                text: "You need to login first to access this page",
+                icon: "warning",
+                confirmButtonText: "OK",
+                allowOutsideClick: false,
+                timer: 2000,
+            }).then(() => {
+                window.location.href = "../login.php";
+            });
+        });
+    </script>';
+    exit(); 
+}
+
 $username = $_SESSION['username'];
 $role = $_SESSION['role'];
 $currentPage = basename($_SERVER['PHP_SELF']);
@@ -32,8 +52,9 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     <div class="flex items-center">
       <img src="../assets/img/profile.jpeg" alt="Profile" class="w-10 h-10 rounded-full object-cover flex-shrink-0">
       <div class="ml-3">
-        <div class="text-sm font-medium text-gray-900 leading-tight"><?php echo htmlspecialchars($username); ?></div>
-        <div class="text-xs text-gray-400 leading-tight"><?php echo htmlspecialchars($role); ?></div>
+      <div class="text-sm font-medium text-gray-900 leading-tight"><?php echo htmlspecialchars($username ?? ''); ?></div>
+<div class="text-xs text-gray-400 leading-tight"><?php echo htmlspecialchars($role ?? ''); ?></div>
+
         <?php if ($role === 'kasir' || $role === 'owner'): ?>
           <div class="text-xs text-gray-500 mt-1">
             Outlet ID: <?php echo htmlspecialchars($_SESSION['id_outlet'] ?? 'N/A'); ?>

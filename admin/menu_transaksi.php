@@ -51,6 +51,8 @@ error_log("Outlet ID in session: " . ($_SESSION['outlet_id'] ?? 'null'));
       <section class="bg-white rounded-md p-6 w-full max-w-4xl">
         <div class="border-b border-black pb-2 mb-4">
           <div class="flex flex-wrap gap-2">
+          <div class="flex justify-end mt-2">
+</div>
             <button id="btnTambah" class="bg-[#C7D9F9] hover:bg-[#B0C9F5] border border-black rounded-md px-4 py-2 text-sm font-normal w-full sm:w-auto transition-colors">Buat Transaksi</button>
             <button id="btnEdit" class="bg-[#FAF5F0] hover:bg-[#F0E6D9] border border-black rounded-md px-4 py-2 text-sm font-normal w-full sm:w-auto transition-colors">Edit Transaksi</button>
           </div>
@@ -67,7 +69,7 @@ error_log("Outlet ID in session: " . ($_SESSION['outlet_id'] ?? 'null'));
               </div>
               <div class="flex flex-col w-full sm:w-[45%]">
                 <label for="diskon" class="text-xs font-semibold mb-1">Diskon</label>
-                <input type="number" id="diskon" name="diskon" class="h-9 rounded-md bg-gray-300 px-3 text-sm outline-none" value="0" min="0" />
+                <input type="number" id="diskon" name="diskon" class="h-9 rounded-md bg-gray-300 px-3 text-sm outline-none" value="0" min="0" onchange="updateTotals()" />
               </div>
               <div class="flex flex-col w-full sm:w-[45%]">
                 <label for="tanggal" class="text-xs font-semibold mb-1">Tanggal</label>
@@ -90,7 +92,7 @@ error_log("Outlet ID in session: " . ($_SESSION['outlet_id'] ?? 'null'));
               </div>
               <div class="flex flex-col w-full sm:w-[45%]">
                 <label for="biaya-tambahan" class="text-xs font-semibold mb-1">Biaya Tambahan</label>
-                <input type="number" id="biaya-tambahan" name="biaya-tambahan" class="h-9 rounded-md bg-gray-300 px-3 text-sm outline-none" value="0" min="0" />
+                <input type="number" id="biaya-tambahan" name="biaya-tambahan" class="h-9 rounded-md bg-gray-300 px-3 text-sm outline-none" value="0" min="0" onchange="updateTotals()" />
               </div>
               <div class="flex flex-col w-full sm:w-[45%]">
                 <label for="status-pesanan" class="text-xs font-semibold mb-1">Status Pesanan</label>
@@ -133,7 +135,55 @@ error_log("Outlet ID in session: " . ($_SESSION['outlet_id'] ?? 'null'));
                 </div>
               </div>
               <div class="flex justify-start mt-4">
+                <button type="button" id="btnTambahDetail" class="bg-blue-200 hover:bg-blue-300 border border-blue-700 rounded-md px-4 py-2 text-sm font-normal text-black transition-colors mr-2">
+                  Tambah Detail
+                </button>
                 <button type="submit" class="bg-green-200 hover:bg-green-300 border border-green-700 rounded-md px-4 py-2 text-sm font-normal text-black transition-colors">Simpan Transaksi</button>
+              </div>
+            </div>
+
+            <!-- Added Transaction Details Table -->
+            <div class="mt-6">
+              <h3 class="text-md font-semibold mb-2">Detail Transaksi yang Ditambahkan</h3>
+              <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                  <thead>
+                    <tr class="border-b border-gray-300">
+                      <th class="text-left py-2 px-1">Paket</th>
+                      <th class="text-left py-2 px-1">Harga</th>
+                      <th class="text-left py-2 px-1">Qty</th>
+                      <th class="text-left py-2 px-1">Subtotal</th>
+                      <th class="text-left py-2 px-1">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="details-table-body">
+                    <!-- Details will be added here dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Totals Section -->
+            <div class="mt-6 border-t border-gray-300 pt-4">
+              <div class="flex justify-between">
+                <span>Subtotal:</span>
+                <span id="display-subtotal">Rp0</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Diskon:</span>
+                <span id="display-diskon">- Rp0</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Biaya Tambahan:</span>
+                <span id="display-biaya-tambahan">+ Rp0</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Pajak (11%):</span>
+                <span id="display-pajak">+ Rp0</span>
+              </div>
+              <div class="flex justify-between font-bold mt-2">
+                <span>Total:</span>
+                <span id="display-total">Rp0</span>
               </div>
             </div>
           </form>
@@ -145,6 +195,7 @@ error_log("Outlet ID in session: " . ($_SESSION['outlet_id'] ?? 'null'));
   <script>
   // Global variables
   let transactionDetails = [];
+  let detailCounter = 0;
   
   // Initialize page
   document.addEventListener('DOMContentLoaded', function() {
@@ -159,6 +210,7 @@ error_log("Outlet ID in session: " . ($_SESSION['outlet_id'] ?? 'null'));
     
     // Button event listeners
     document.getElementById('btnTambah').addEventListener('click', showAddForm);
+    document.getElementById('btnTambahDetail').addEventListener('click', addDetailRow);
     
     // Form submission
     document.getElementById('formTambah').addEventListener('submit', function(e) {
@@ -175,6 +227,108 @@ error_log("Outlet ID in session: " . ($_SESSION['outlet_id'] ?? 'null'));
       <?php unset($_SESSION['error_message']); ?>
     <?php endif; ?>
   });
+  
+  // Function to add a new detail row
+  function addDetailRow() {
+    const paketSelect = document.getElementById('paket');
+    const qtyInput = document.getElementById('qty');
+    const keteranganInput = document.getElementById('keterangan');
+    
+    // Only validate if user is trying to add a new detail
+    if (paketSelect.value || qtyInput.value) {
+        if (!paketSelect.value) {
+            showNotification('error', 'Silakan pilih paket');
+            return;
+        }
+        if (!qtyInput.value || parseFloat(qtyInput.value) <= 0) {
+            showNotification('error', 'Silakan masukkan jumlah yang valid');
+            return;
+        }
+    } else {
+        // No new detail to add
+        return;
+    }
+    
+    // Get selected package
+    const selectedOption = paketSelect.options[paketSelect.selectedIndex];
+    const harga = parseFloat(selectedOption.dataset.harga);
+    const qty = parseFloat(qtyInput.value);
+    const subtotal = harga * qty;
+    
+    // Add to transaction details
+    const detailId = 'detail-' + detailCounter++;
+    transactionDetails.push({
+        id: detailId,
+        id_paket: paketSelect.value,
+        nama_paket: selectedOption.text,
+        harga: harga,
+        qty: qty,
+        keterangan: keteranganInput.value,
+        subtotal: subtotal
+    });
+    
+    // Update details table
+    updateDetailsTable();
+    
+    // Reset form inputs
+    paketSelect.selectedIndex = 0;
+    paketSelect.required = false; // Remove required after first item is added
+    qtyInput.value = 1;
+    keteranganInput.value = '';
+}
+
+  // Function to update the details table
+  function updateDetailsTable() {
+    const tableBody = document.getElementById('details-table-body');
+    tableBody.innerHTML = '';
+    
+    transactionDetails.forEach(detail => {
+      const row = document.createElement('tr');
+      row.className = 'border-b border-gray-200';
+      row.dataset.id = detail.id;
+      
+      row.innerHTML = `
+        <td class="py-2 px-1">${detail.nama_paket}</td>
+        <td class="py-2 px-1">Rp${detail.harga.toLocaleString()}</td>
+        <td class="py-2 px-1">${detail.qty}</td>
+        <td class="py-2 px-1">Rp${detail.subtotal.toLocaleString()}</td>
+        <td class="py-2 px-1">
+          <button onclick="removeDetail('${detail.id}')" class="text-red-500 hover:text-red-700">
+            <i class="fas fa-trash"></i>
+          </button>
+        </td>
+      `;
+      
+      tableBody.appendChild(row);
+    });
+    
+    // Update totals
+    updateTotals();
+  }
+
+  // Function to remove a detail
+  function removeDetail(detailId) {
+    transactionDetails = transactionDetails.filter(detail => detail.id !== detailId);
+    updateDetailsTable();
+  }
+
+  // Function to update totals
+  function updateTotals() {
+    const subtotal = transactionDetails.reduce((sum, detail) => sum + detail.subtotal, 0);
+    const diskon = parseFloat(document.getElementById('diskon').value) || 0;
+    const biayaTambahan = parseFloat(document.getElementById('biaya-tambahan').value) || 0;
+    const pajakPersen = parseFloat(document.getElementById('pajak').value) || 0;
+    
+    const totalSebelumPajak = subtotal - diskon + biayaTambahan;
+    const pajak = totalSebelumPajak * (pajakPersen / 100);
+    const totalSetelahPajak = totalSebelumPajak + pajak;
+    
+    document.getElementById('display-subtotal').textContent = `Rp${subtotal.toLocaleString()}`;
+    document.getElementById('display-diskon').textContent = `- Rp${diskon.toLocaleString()}`;
+    document.getElementById('display-biaya-tambahan').textContent = `+ Rp${biayaTambahan.toLocaleString()}`;
+    document.getElementById('display-pajak').textContent = `+ Rp${pajak.toLocaleString()}`;
+    document.getElementById('display-total').textContent = `Rp${totalSetelahPajak.toLocaleString()}`;
+  }
   
   // Functions
   function showNotification(type, message) {
@@ -214,7 +368,7 @@ error_log("Outlet ID in session: " . ($_SESSION['outlet_id'] ?? 'null'));
               </div>
               <div class="flex flex-col w-full sm:w-[45%]">
                 <label for="diskon" class="text-xs font-semibold mb-1">Diskon</label>
-                <input type="number" id="diskon" name="diskon" class="h-9 rounded-md bg-gray-300 px-3 text-sm outline-none" value="0" min="0" />
+                <input type="number" id="diskon" name="diskon" class="h-9 rounded-md bg-gray-300 px-3 text-sm outline-none" value="0" min="0" onchange="updateTotals()" />
               </div>
               <div class="flex flex-col w-full sm:w-[45%]">
                 <label for="tanggal" class="text-xs font-semibold mb-1">Tanggal</label>
@@ -237,7 +391,7 @@ error_log("Outlet ID in session: " . ($_SESSION['outlet_id'] ?? 'null'));
               </div>
               <div class="flex flex-col w-full sm:w-[45%]">
                 <label for="biaya-tambahan" class="text-xs font-semibold mb-1">Biaya Tambahan</label>
-                <input type="number" id="biaya-tambahan" name="biaya-tambahan" class="h-9 rounded-md bg-gray-300 px-3 text-sm outline-none" value="0" min="0" />
+                <input type="number" id="biaya-tambahan" name="biaya-tambahan" class="h-9 rounded-md bg-gray-300 px-3 text-sm outline-none" value="0" min="0" onchange="updateTotals()" />
               </div>
               <div class="flex flex-col w-full sm:w-[45%]">
                 <label for="status-pesanan" class="text-xs font-semibold mb-1">Status Pesanan</label>
@@ -280,41 +434,102 @@ error_log("Outlet ID in session: " . ($_SESSION['outlet_id'] ?? 'null'));
                 </div>
               </div>
               <div class="flex justify-start mt-4">
+                <button type="button" id="btnTambahDetail" class="bg-blue-200 hover:bg-blue-300 border border-blue-700 rounded-md px-4 py-2 text-sm font-normal text-black transition-colors mr-2">
+                  Tambah Detail
+                </button>
                 <button type="submit" class="bg-green-200 hover:bg-green-300 border border-green-700 rounded-md px-4 py-2 text-sm font-normal text-black transition-colors">Simpan Transaksi</button>
+              </div>
+            </div>
+
+            <!-- Added Transaction Details Table -->
+            <div class="mt-6">
+              <h3 class="text-md font-semibold mb-2">Detail Transaksi yang Ditambahkan</h3>
+              <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                  <thead>
+                    <tr class="border-b border-gray-300">
+                      <th class="text-left py-2 px-1">Paket</th>
+                      <th class="text-left py-2 px-1">Harga</th>
+                      <th class="text-left py-2 px-1">Qty</th>
+                      <th class="text-left py-2 px-1">Subtotal</th>
+                      <th class="text-left py-2 px-1">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="details-table-body">
+                    <!-- Details will be added here dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Totals Section -->
+            <div class="mt-6 border-t border-gray-300 pt-4">
+              <div class="flex justify-between">
+                <span>Subtotal:</span>
+                <span id="display-subtotal">Rp0</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Diskon:</span>
+                <span id="display-diskon">- Rp0</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Biaya Tambahan:</span>
+                <span id="display-biaya-tambahan">+ Rp0</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Pajak (11%):</span>
+                <span id="display-pajak">+ Rp0</span>
+              </div>
+              <div class="flex justify-between font-bold mt-2">
+                <span>Total:</span>
+                <span id="display-total">Rp0</span>
               </div>
             </div>
           </form>
     `;
-}
-
-function showAddForm() {
+  }
+  
+  function showAddForm() {
     document.getElementById('form-container').innerHTML = getAddFormHTML();
     updateButtonStyles('btnTambah');
     
     // Load data yang diperlukan untuk form tambah
     loadMembers();
-    loadPackages(); // Tambahkan ini
+    loadPackages();
     
     // Set default values
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('tanggal').value = today;
     document.getElementById('kasir').value = '<?php echo $_SESSION['nama'] ?? "Kasir"; ?>';
-}
-  
+    
+    // Reset transaction details
+    transactionDetails = [];
+    detailCounter = 0;
+    updateDetailsTable();
+    
+    // Add event listeners
+    document.getElementById('btnTambahDetail').addEventListener('click', addDetailRow);
+    document.getElementById('formTambah').addEventListener('submit', function(e) {
+      e.preventDefault();
+      showConfirmation();
+    });
+  }
   
   function loadMembers() {
     fetch('get_members.php')
       .then(response => response.json())
       .then(data => {
         const select = document.getElementById('nama-lengkap');
-        select.innerHTML = '<option value="" disabled selected>Pilih Member</option>';
-        
-        data.forEach(member => {
-          const option = document.createElement('option');
-          option.value = member.id;
-          option.textContent = `${member.nama} - ${member.tlp}`;
-          select.appendChild(option);
-        });
+        if (select) {
+          select.innerHTML = '<option value="" disabled selected>Pilih Member</option>';
+          
+          data.forEach(member => {
+            const option = document.createElement('option');
+            option.value = member.id;
+            option.textContent = `${member.nama} - ${member.tlp}`;
+            select.appendChild(option);
+          });
+        }
       })
       .catch(error => {
         console.error('Error loading members:', error);
@@ -343,58 +558,46 @@ function showAddForm() {
     })
     .then(data => {
       const select = document.getElementById('paket');
-      select.innerHTML = '<option value="" disabled selected>Pilih Paket</option>';
-      
-      if (!data || data.length === 0) {
-        select.innerHTML = '<option value="" disabled selected>Tidak ada paket tersedia</option>';
-        return;
+      if (select) {
+        select.innerHTML = '<option value="" disabled selected>Pilih Paket</option>';
+        
+        if (!data || data.length === 0) {
+          select.innerHTML = '<option value="" disabled selected>Tidak ada paket tersedia</option>';
+          return;
+        }
+        
+        data.forEach(pkg => {
+          const option = document.createElement('option');
+          option.value = pkg.id;
+          option.textContent = `${pkg.nama_paket} (${pkg.jenis}) - Rp${pkg.harga.toLocaleString()}`;
+          option.dataset.harga = pkg.harga;
+          select.appendChild(option);
+        });
       }
-      
-      data.forEach(pkg => {
-        const option = document.createElement('option');
-        option.value = pkg.id;
-        option.textContent = `${pkg.nama_paket} (${pkg.jenis}) - Rp${pkg.harga.toLocaleString()}`;
-        option.dataset.harga = pkg.harga;
-        select.appendChild(option);
-      });
     })
     .catch(error => {
       console.error('Error loading packages:', error);
-      document.getElementById('paket').innerHTML = '<option value="" disabled selected>Gagal memuat paket</option>';
+      const select = document.getElementById('paket');
+      if (select) {
+        select.innerHTML = '<option value="" disabled selected>Gagal memuat paket</option>';
+      }
     });
   }
   
   function showConfirmation() {
-    // Get form values
-    const memberSelect = document.getElementById('nama-lengkap');
-    const selectedMember = memberSelect.options[memberSelect.selectedIndex].text;
-    const paketSelect = document.getElementById('paket');
-    const qtyInput = document.getElementById('qty');
-    const keteranganInput = document.getElementById('keterangan');
-    const diskonInput = document.getElementById('diskon');
-    const biayaTambahanInput = document.getElementById('biaya-tambahan');
-    const pajakInput = document.getElementById('pajak');
-    
     // Validate inputs
-    if (!memberSelect.value || !paketSelect.value || !qtyInput.value || parseFloat(qtyInput.value) <= 0) {
-      showNotification('error', 'Silakan lengkapi semua field yang diperlukan');
-      return;
+    if (transactionDetails.length === 0) {
+        showNotification('error', 'Silakan tambahkan minimal satu detail transaksi');
+        return;
     }
     
-    // Get package details
-    const selectedOption = paketSelect.options[paketSelect.selectedIndex];
-    const harga = parseFloat(selectedOption.dataset.harga);
-    const qty = parseFloat(qtyInput.value);
-    const subtotal = harga * qty;
+    const memberSelect = document.getElementById('nama-lengkap');
+    if (!memberSelect.value) {
+        showNotification('error', 'Silakan pilih member');
+        return;
+    }
     
-    // Calculate other values
-    const diskon = parseFloat(diskonInput.value) || 0;
-    const biayaTambahan = parseFloat(biayaTambahanInput.value) || 0;
-    const pajakPersen = parseFloat(pajakInput.value) || 0;
-    
-    const totalSebelumPajak = subtotal - diskon + biayaTambahan;
-    const pajak = totalSebelumPajak * (pajakPersen / 100);
-    const totalSetelahPajak = totalSebelumPajak + pajak;
+    const selectedMember = memberSelect.options[memberSelect.selectedIndex].text;
     
     // Create order details HTML
     const orderDetails = `
@@ -413,38 +616,38 @@ function showAddForm() {
             </tr>
           </thead>
           <tbody>
-            <tr class="border-b border-gray-200">
-              <td class="py-2 px-1">${selectedOption.text}</td>
-              <td class="py-2 px-1">Rp${harga.toLocaleString()}</td>
-              <td class="py-2 px-1">${qty}</td>
-              <td class="py-2 px-1">Rp${subtotal.toLocaleString()}</td>
-            </tr>
+            ${transactionDetails.map(detail => `
+              <tr class="border-b border-gray-200">
+                <td class="py-2 px-1">${detail.nama_paket}</td>
+                <td class="py-2 px-1">Rp${detail.harga.toLocaleString()}</td>
+                <td class="py-2 px-1">${detail.qty}</td>
+                <td class="py-2 px-1">Rp${detail.subtotal.toLocaleString()}</td>
+              </tr>
+            `).join('')}
           </tbody>
           <tfoot>
             <tr>
               <td colspan="3" class="text-right py-2 px-1">Subtotal:</td>
-              <td class="py-2 px-1">Rp${subtotal.toLocaleString()}</td>
+              <td class="py-2 px-1">${document.getElementById('display-subtotal').textContent}</td>
             </tr>
             <tr>
               <td colspan="3" class="text-right py-2 px-1">Diskon:</td>
-              <td class="py-2 px-1">- Rp${diskon.toLocaleString()}</td>
+              <td class="py-2 px-1">${document.getElementById('display-diskon').textContent}</td>
             </tr>
             <tr>
               <td colspan="3" class="text-right py-2 px-1">Biaya Tambahan:</td>
-              <td class="py-2 px-1">+ Rp${biayaTambahan.toLocaleString()}</td>
+              <td class="py-2 px-1">${document.getElementById('display-biaya-tambahan').textContent}</td>
             </tr>
             <tr>
-              <td colspan="3" class="text-right py-2 px-1">Pajak (${pajakPersen}%):</td>
-              <td class="py-2 px-1">+ Rp${pajak.toLocaleString()}</td>
+              <td colspan="3" class="text-right py-2 px-1">Pajak (${document.getElementById('pajak').value}%):</td>
+              <td class="py-2 px-1">${document.getElementById('display-pajak').textContent}</td>
             </tr>
             <tr class="border-t border-gray-300">
               <td colspan="3" class="text-right py-2 px-1 font-bold">Total:</td>
-              <td class="py-2 px-1 font-bold">Rp${totalSetelahPajak.toLocaleString()}</td>
+              <td class="py-2 px-1 font-bold">${document.getElementById('display-total').textContent}</td>
             </tr>
           </tfoot>
         </table>
-        
-        ${keteranganInput.value ? `<p class="mt-3"><strong>Keterangan:</strong> ${keteranganInput.value}</p>` : ''}
       </div>
     `;
     
@@ -463,9 +666,13 @@ function showAddForm() {
       if (result.isConfirmed) {
         // Prepare data for submission
         const formData = new FormData(document.getElementById('formTambah'));
-        formData.append('details[0][id_paket]', paketSelect.value);
-        formData.append('details[0][qty]', qty);
-        formData.append('details[0][keterangan]', keteranganInput.value);
+        
+        // Add all transaction details
+        transactionDetails.forEach((detail, index) => {
+          formData.append(`details[${index}][id_paket]`, detail.id_paket);
+          formData.append(`details[${index}][qty]`, detail.qty);
+          formData.append(`details[${index}][keterangan]`, detail.keterangan);
+        });
         
         // Submit the form
         submitTransaction(formData);
@@ -498,9 +705,8 @@ function showAddForm() {
     });
   }
 
-
-// Event listener untuk tombol "Edit"
-document.getElementById('btnEdit').addEventListener('click', function() {
+  // Event listener untuk tombol "Edit"
+  document.getElementById('btnEdit').addEventListener('click', function() {
     const container = document.getElementById('form-container');
     container.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-white"></i></div>';
     
@@ -656,6 +862,96 @@ document.getElementById('btnEdit').addEventListener('click', function() {
 
     updateButtonStyles('btnEdit');
 });
+
+// Fungsi untuk export ke Excel
+document.getElementById('btnExportExcel').addEventListener('click', function() {
+  // Tampilkan dialog untuk memilih periode
+  Swal.fire({
+    title: 'Export Data Transaksi',
+    html: `
+      <div class="text-left">
+        <div class="mb-4">
+          <label class="block text-sm font-medium mb-1">Tanggal Mulai</label>
+          <input type="date" id="exportStartDate" class="w-full p-2 border rounded">
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium mb-1">Tanggal Akhir</label>
+          <input type="date" id="exportEndDate" class="w-full p-2 border rounded">
+        </div>
+      </div>
+    `,
+    showCancelButton: true,
+    confirmButtonText: 'Export',
+    cancelButtonText: 'Batal',
+    focusConfirm: false,
+    preConfirm: () => {
+      const startDate = document.getElementById('exportStartDate').value;
+      const endDate = document.getElementById('exportEndDate').value;
+      
+      if (!startDate || !endDate) {
+        Swal.showValidationMessage('Harap isi kedua tanggal');
+        return false;
+      }
+      
+      return { startDate, endDate };
+    }
+  }).then((result) => {
+    if (result.isConfirmed) {
+      exportToExcel(result.value.startDate, result.value.endDate);
+    }
+  });
+});
+
+// Fungsi untuk melakukan export
+function exportToExcel(startDate, endDate) {
+  // Tampilkan loading
+  Swal.fire({
+    title: 'Menyiapkan Excel',
+    html: 'Sedang memproses data...',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+
+  // Kirim request ke server
+  fetch('export_transaksi_excel.php', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: `start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}&outlet_id=<?php echo $_SESSION['id_outlet'] ?? ''; ?>`
+  })
+  .then(response => {
+    if (!response.ok) throw new Error('Gagal mengunduh file');
+    return response.blob();
+  })
+  .then(blob => {
+    // Buat URL untuk blob
+    const url = window.URL.createObjectURL(blob);
+    
+    // Buat link untuk download
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Laporan_Transaksi_${startDate}_sd_${endDate}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    
+    // Bersihkan
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    
+    Swal.close();
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Gagal',
+      text: 'Terjadi kesalahan saat mengekspor data'
+    });
+  });
+}
   </script>
 </body>
 </html>

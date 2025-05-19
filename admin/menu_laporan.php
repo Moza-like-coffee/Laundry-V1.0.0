@@ -219,25 +219,32 @@ $statusPembayaranOptions = "<option value='' disabled selected>Pilih Status</opt
         <h3 class="text-lg font-semibold mb-4">Hasil Laporan</h3>
         
         <div class="flex justify-between items-center mb-4">
-          <div>
-            <p class="text-sm"><span class="font-semibold">Periode:</span> 
-              <?= date('d M Y', strtotime($tanggalAwal)) ?> - <?= date('d M Y', strtotime($tanggalAkhir)) ?>
-            </p>
-            <?php if (!empty($outlet)): ?>
-              <?php 
-                $outletName = '';
-                $outletQuery = mysqli_query($mysqli, "SELECT nama FROM tb_outlet WHERE id = '$outlet'");
-                if ($outletRow = mysqli_fetch_assoc($outletQuery)) {
-                  $outletName = $outletRow['nama'];
-                }
-              ?>
-              <p class="text-sm"><span class="font-semibold">Outlet:</span> <?= $outletName ?></p>
-            <?php endif; ?>
-          </div>
-          <div class="bg-[#f0f7ff] px-4 py-2 rounded-md border border-blue-200">
-            <p class="text-sm font-semibold">Total Pendapatan: <span class="text-blue-600">Rp <?= number_format($totalPendapatan, 0, ',', '.') ?></span></p>
-          </div>
-        </div>
+  <div>
+    <?php 
+    if (!empty($tanggalAwal) || !empty($tanggalAkhir)): 
+      $displayAwal = !empty($tanggalAwal) ? date('d M Y', strtotime($tanggalAwal)) : 'Awal';
+      $displayAkhir = !empty($tanggalAkhir) ? date('d M Y', strtotime($tanggalAkhir)) : 'Sekarang';
+    ?>
+      <p class="text-sm"><span class="font-semibold">Periode:</span> 
+        <?= "$displayAwal - $displayAkhir" ?>
+      </p>
+    <?php endif; ?>
+    
+    <?php if (!empty($outlet)): ?>
+      <?php 
+        $outletName = '';
+        $outletQuery = mysqli_query($mysqli, "SELECT nama FROM tb_outlet WHERE id = '$outlet'");
+        if ($outletRow = mysqli_fetch_assoc($outletQuery)) {
+          $outletName = $outletRow['nama'];
+        }
+      ?>
+      <p class="text-sm"><span class="font-semibold">Outlet:</span> <?= $outletName ?></p>
+    <?php endif; ?>
+  </div>
+  <div class="bg-[#f0f7ff] px-4 py-2 rounded-md border border-blue-200">
+    <p class="text-sm font-semibold">Total Pendapatan: <span class="text-blue-600">Rp <?= number_format($totalPendapatan, 0, ',', '.') ?></span></p>
+  </div>
+</div>
         
         <div class="overflow-x-auto">
           <table class="report-table">
@@ -295,14 +302,24 @@ $statusPembayaranOptions = "<option value='' disabled selected>Pilih Status</opt
           <button onclick="window.print()" class="bg-[#c7d9f7] border border-black rounded-md px-6 py-2 text-sm font-normal hover:bg-blue-200 mr-2">
             <i class="fas fa-print mr-2"></i>Cetak Laporan
           </button>
-          <button class="bg-[#f8d7da] border border-black rounded-md px-6 py-2 text-sm font-normal hover:bg-red-200">
-            <i class="fas fa-file-excel mr-2"></i>Export Excel
-          </button>
+          <button onclick="exportToExcel()" class="bg-[#f8d7da] border border-black rounded-md px-6 py-2 text-sm font-normal hover:bg-red-200">
+  <i class="fas fa-file-excel mr-2"></i>Export Excel
+</button>
         </div>
       </div>
       <?php endif; ?>
     </section>
   </main>
 </div>
+
+<script>
+  function exportToExcel() {
+  // Ambil semua parameter filter dari URL saat ini
+  const urlParams = new URLSearchParams(window.location.search);
+  
+  // Redirect ke export_excel.php dengan parameter yang sama
+  window.location.href = 'export_excel.php?' + urlParams.toString();
+}
+</script>
 </body>
 </html>

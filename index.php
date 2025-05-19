@@ -5,9 +5,15 @@ include 'database/connect.php';
 $result_karyawan = mysqli_query($mysqli, "SELECT COUNT(*) as total FROM tb_user WHERE role = 'kasir'");
 $karyawan = mysqli_fetch_assoc($result_karyawan)['total'];
 
-//ambil data total outlet dari database
-$result_outlet = mysqli_query($mysqli, "SELECT COUNT(*) as total FROM tb_outlet");
-$outlet = mysqli_fetch_assoc($result_outlet)['total'];
+//ambil data total Outlet dari database
+$result_Outlet = mysqli_query($mysqli, "SELECT COUNT(*) as total FROM tb_Outlet");
+$Outlet = mysqli_fetch_assoc($result_Outlet)['total'];
+
+$result_outlets = mysqli_query($mysqli, "SELECT * FROM tb_Outlet");
+$outlets = [];
+while ($row = mysqli_fetch_assoc($result_outlets)) {
+    $outlets[] = $row;
+}
 ?>
 
 
@@ -45,8 +51,28 @@ $outlet = mysqli_fetch_assoc($result_outlet)['total'];
     }
     /* Custom CSS for smooth banner transitions */
     .banner-slide {
-      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+  opacity: 0;
+  transform: translateX(100%);
+  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.banner-slide.active {
+  opacity: 1;
+  transform: translateX(0);
+  z-index: 1;
+}
+
+.banner-slide.leaving {
+  opacity: 0;
+  transform: translateX(-100%);
+  z-index: 0;
+}
+
+.banner-slide.next {
+  opacity: 0;
+  transform: translateX(100%);
+  z-index: 0;
+}
   
     /* Responsive image container */
     .responsive-banner {
@@ -176,6 +202,37 @@ $outlet = mysqli_fetch_assoc($result_outlet)['total'];
     </section>
   </main>
 
+  <!-- Outlet Section -->
+<main class="text-center py-12 px-4 sm:px-8">
+  <h1 class="text-2xl sm:text-3xl font-normal mb-10 mt-24">
+    Outlet <span class="text-red-600">Nyuci Kilat</span> diseluruh dunia
+  </h1>
+  <div class="flex flex-wrap justify-center gap-10 max-w-7xl mx-auto">
+    <?php foreach ($outlets as $outlet): 
+      // Split address and country (assuming format "Alamat, Negara")
+      $addressParts = explode(',', $outlet['alamat']);
+      $address = trim($addressParts[0]);
+      $country = count($addressParts) > 1 ? trim(end($addressParts)) : '';
+    ?>
+    <div class="bg-[#f0d9bb] rounded-lg shadow-md w-[280px] flex flex-col overflow-hidden">
+      <img
+        src="assets/img/Outlet Laundry.png"
+        alt="Outlet"
+        class="w-full h-auto"
+        width="280"
+        height="280"
+      />
+      <div class="bg-white rounded-b-lg shadow-inner py-3">
+        <h2 class="text-xl font-medium m-0"><?php echo htmlspecialchars($outlet['nama']); ?></h2>
+        <p class="text-sm font-normal m-0"><?php echo htmlspecialchars($address); ?></p>
+        <?php if ($country): ?>
+        <p class="text-xs font-normal m-0"><?php echo htmlspecialchars($country); ?></p>
+        <?php endif; ?>
+      </div>
+    </div>
+    <?php endforeach; ?>
+  </div>
+</main>
 
   <!-- Tentang Kami -->
   <main id="tentang-kami" class="px-5 py-16 text-center sm:px-20 sm:py-24">
@@ -231,7 +288,7 @@ $outlet = mysqli_fetch_assoc($result_outlet)['total'];
     <div class="flex flex-col md:flex-row md:justify-center md:space-x-8 space-y-6 md:space-y-0 max-w-5xl w-full">
       <div class="bg-white shadow-md rounded p-5 flex-1 max-w-md mx-auto md:max-w-none">
         <div class="text-[#1a5de8] text-sm mb-2">Jumlah Outlet</div>
-        <div class="font-bold text-3xl mb-2"><?php echo $outlet; ?></div>
+        <div class="font-bold text-3xl mb-2"><?php echo $Outlet; ?></div>
         <div class="font-extrabold text-xs">Cabang yang tersebar di seluruh dunia</div>
       </div>
       <div class="bg-white shadow-md rounded p-5 flex-1 max-w-md mx-auto md:max-w-none">
@@ -245,7 +302,7 @@ $outlet = mysqli_fetch_assoc($result_outlet)['total'];
       <div class="bg-white shadow-md rounded p-5 flex-1 max-w-md mx-auto md:max-w-none">
         <div class="text-[#1a5de8] text-sm mb-2">Total Pegawai</div>
         <div class="font-bold text-3xl mb-2"><?php echo $karyawan; ?></div>
-        <div class="font-extrabold text-xs">Sebanyak <?php echo $karyawan; ?> orang yang tersebar di <?php echo $outlet; ?> cabang</div>
+        <div class="font-extrabold text-xs">Sebanyak <?php echo $karyawan; ?> orang yang tersebar di <?php echo $Outlet; ?> cabang</div>
       </div>
     </div>
   </main>
@@ -262,78 +319,144 @@ $outlet = mysqli_fetch_assoc($result_outlet)['total'];
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // Banner slider functionality
-      const banners = document.querySelectorAll('.banner-slide');
-      const dots = document.querySelectorAll('.dot');
-      const prevBtn = document.getElementById('prevBtn');
-      const nextBtn = document.getElementById('nextBtn');
-      let currentIndex = 0;
-      let slideInterval;
-      
-      function updateSlides() {
-        banners.forEach((slide, index) => {
-          slide.classList.remove('active', 'prev', 'next');
-          
-          if (index === currentIndex) {
-            slide.classList.add('active');
-            slide.classList.remove('opacity-0', 'translate-x-full');
-            slide.classList.add('opacity-100', 'translate-x-0');
-          } else if (index === (currentIndex - 1 + banners.length) % banners.length) {
-            slide.classList.add('prev');
-            slide.classList.remove('opacity-0', 'translate-x-0');
-            slide.classList.add('opacity-0', '-translate-x-full');
-          } else if (index === (currentIndex + 1) % banners.length) {
-            slide.classList.add('next');
-            slide.classList.remove('opacity-0', 'translate-x-0');
-            slide.classList.add('opacity-0', 'translate-x-full');
-          } else {
-            slide.classList.add('opacity-0', 'translate-x-full');
-          }
-        });
+document.addEventListener('DOMContentLoaded', function() {
+  // Banner slider functionality
+  const banners = document.querySelectorAll('.banner-slide');
+  const dots = document.querySelectorAll('.dot');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  let currentIndex = 0;
+  let slideInterval;
+  let isAnimating = false;
+  
+  // Animation timing
+  const animationDuration = 800;
+  const slideIntervalTime = 3000; 
+  
+  function updateSlides() {
+    if (isAnimating) return;
+    isAnimating = true;
+    
+    // Remove all classes first
+    banners.forEach(slide => {
+      slide.classList.remove('active', 'prev', 'next', 'leaving');
+    });
+    
+    // Set up new slide positions
+    banners.forEach((slide, index) => {
+      if (index === currentIndex) {
+        // New active slide comes from right
+        slide.classList.add('next');
+        slide.style.transition = 'none';
+        slide.style.transform = 'translateX(100%)';
         
-        dots.forEach((dot, index) => {
-          if (index === currentIndex) {
-            dot.classList.replace('bg-gray-300', 'bg-white');
-          } else {
-            dot.classList.replace('bg-white', 'bg-gray-300');
-          }
-        });
+        // Force repaint
+        void slide.offsetWidth;
+        
+        // Animate in
+        slide.style.transition = `transform ${animationDuration}ms cubic-bezier(0.4, 0, 0.2, 1), opacity ${animationDuration}ms cubic-bezier(0.4, 0, 0.2, 1)`;
+        slide.classList.replace('next', 'active');
+        slide.style.transform = 'translateX(0)';
+        slide.style.opacity = '1';
+      } 
+      else if (index === (currentIndex - 1 + banners.length) % banners.length) {
+        // Previous slide moves to left
+        slide.classList.add('leaving');
+        slide.style.transform = 'translateX(-100%)';
+        slide.style.opacity = '0';
       }
-      
-      function goToSlide(index) {
-        currentIndex = (index + banners.length) % banners.length;
-        updateSlides();
+      else {
+        // All other slides stay hidden
+        slide.style.opacity = '0';
+        slide.style.transform = 'translateX(100%)';
       }
-      
-      function startSlider() {
-        slideInterval = setInterval(() => {
-          goToSlide(currentIndex + 1);
-        }, 5000);
+    });
+    
+    // Update dot indicators
+    dots.forEach((dot, index) => {
+      if (index === currentIndex) {
+        dot.classList.replace('bg-gray-300', 'bg-white');
+      } else {
+        dot.classList.replace('bg-white', 'bg-gray-300');
       }
-      
-      function resetTimer() {
-        clearInterval(slideInterval);
-        startSlider();
-      }
-      
-      dots.forEach(dot => {
-        dot.addEventListener('click', () => {
-          const index = parseInt(dot.getAttribute('data-index'));
-          goToSlide(index);
-          resetTimer();
-        });
-      });
-      
-      prevBtn.addEventListener('click', () => {
-        goToSlide(currentIndex - 1);
+    });
+    
+    // Reset animation flag after animation completes
+    setTimeout(() => {
+      isAnimating = false;
+    }, animationDuration);
+  }
+  
+  function goToSlide(index) {
+    currentIndex = (index + banners.length) % banners.length;
+    updateSlides();
+  }
+  
+  function startSlider() {
+    // Clear existing interval if any
+    clearInterval(slideInterval);
+    // Start new interval with 3 seconds
+    slideInterval = setInterval(() => {
+      goToSlide(currentIndex + 1);
+    }, slideIntervalTime);
+  }
+  
+  function resetTimer() {
+    clearInterval(slideInterval);
+    startSlider();
+  }
+  
+  // Dot click handlers
+  dots.forEach(dot => {
+    dot.addEventListener('click', () => {
+      if (isAnimating) return;
+      const index = parseInt(dot.getAttribute('data-index'));
+      if (index !== currentIndex) {
+        goToSlide(index);
         resetTimer();
-      });
-      
-      nextBtn.addEventListener('click', () => {
-        goToSlide(currentIndex + 1);
-        resetTimer();
-      });
+      }
+    });
+  });
+  
+  // Navigation buttons
+  prevBtn.addEventListener('click', () => {
+    if (isAnimating) return;
+    goToSlide(currentIndex - 1);
+    resetTimer();
+  });
+  
+  nextBtn.addEventListener('click', () => {
+    if (isAnimating) return;
+    goToSlide(currentIndex + 1);
+    resetTimer();
+  });
+  
+  // Initialize the slider
+  banners.forEach((slide, index) => {
+    slide.style.transition = `transform ${animationDuration}ms cubic-bezier(0.4, 0, 0.2, 1), opacity ${animationDuration}ms cubic-bezier(0.4, 0, 0.2, 1)`;
+    if (index === 0) {
+      slide.classList.add('active');
+      slide.style.opacity = '1';
+      slide.style.transform = 'translateX(0)';
+    } else {
+      slide.classList.add('next');
+      slide.style.opacity = '0';
+      slide.style.transform = 'translateX(100%)';
+    }
+  });
+  
+  dots[0].classList.replace('bg-gray-300', 'bg-white');
+  startSlider();
+  
+  // Pause on hover
+  const bannerContainer = document.querySelector('.responsive-banner');
+  bannerContainer.addEventListener('mouseenter', () => {
+    clearInterval(slideInterval);
+  });
+  
+  bannerContainer.addEventListener('mouseleave', () => {
+    startSlider();
+  });
       
       // Initialize the slider
       updateSlides();
