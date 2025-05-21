@@ -155,7 +155,8 @@ while ($row = mysqli_fetch_assoc($result_outlets)) {
   <div class="pt-20"></div>
   
   <!-- Banner Slider Section -->
-  <section class="max-w-[1020px] mx-auto mt-6 relative px-4">
+  <section class="max-w-[1020px] mx-auto mt-6 relative px-4 hidden md:block">
+  <!-- kalo mau banner ada <section class="max-w-[1020px] mx-auto mt-6 relative px-4"> -->
     <div class="relative w-full responsive-banner overflow-hidden rounded-xl shadow-xl">
       <!-- Banner 1 -->
       <div class="banner-slide absolute w-full h-full transition-[banner] duration-800 opacity-0 translate-x-full rounded-xl overflow-hidden active">
@@ -189,7 +190,8 @@ while ($row = mysqli_fetch_assoc($result_outlets)) {
     </div>
     
     <!-- Dot Indicators -->
-    <div class="flex justify-center gap-2 mt-4">
+    <!-- kalo mau banner ada di mobile <div class="flex justify-center gap-2 mt-4"> -->
+    <div class="hidden md:flex justify-center gap-2 mt-4">
       <button class="dot w-3 h-3 rounded-full bg-white border border-gray-400" data-index="0"></button>
       <button class="dot w-3 h-3 rounded-full bg-gray-300 border border-gray-400" data-index="1"></button>
       <button class="dot w-3 h-3 rounded-full bg-gray-300 border border-gray-400" data-index="2"></button>
