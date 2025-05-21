@@ -331,16 +331,34 @@ error_log("Outlet ID in session: " . ($_SESSION['outlet_id'] ?? 'null'));
   }
   
   // Functions
-  function showNotification(type, message) {
-    Swal.fire({
-      icon: type,
-      title: type === 'success' ? 'Sukses' : 'Error',
-      text: message,
-      confirmButtonText: 'OK'
-    }).then(() => {
-      window.history.replaceState({}, document.title, window.location.pathname);
-    });
-  }
+  // Di bagian script menu_transaksi.php, modifikasi showNotification untuk success
+function showNotification(type, message) {
+    if (type === 'success') {
+        Swal.fire({
+            icon: type,
+            title: 'Sukses',
+            text: message,
+            showCancelButton: true,
+            confirmButtonText: 'Cetak Invoice',
+            cancelButtonText: 'Tutup',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Ambil ID transaksi dari message atau langsung redirect
+                window.location.href = 'invoice.php?id=' + <?= $id_transaksi ?? '0' ?>;
+            }
+            window.history.replaceState({}, document.title, window.location.pathname);
+        });
+    } else {
+        Swal.fire({
+            icon: type,
+            title: type === 'success' ? 'Sukses' : 'Error',
+            text: message,
+            confirmButtonText: 'OK'
+        }).then(() => {
+            window.history.replaceState({}, document.title, window.location.pathname);
+        });
+    }
+}
   
   function updateButtonStyles(activeButtonId) {
     const buttons = ['btnTambah', 'btnEdit'];
@@ -682,28 +700,34 @@ error_log("Outlet ID in session: " . ($_SESSION['outlet_id'] ?? 'null'));
   
   function submitTransaction(formData) {
     fetch('process_transaction.php', {
-      method: 'POST',
-      body: formData
+        method: 'POST',
+        body: formData
     })
-    .then(response => {
-      if (response.redirected) {
-        window.location.href = response.url;
-      } else {
-        return response.json();
-      }
-    })
+    .then(response => response.json())
     .then(data => {
-      if (data.success) {
-        window.location.href = 'menu_transaksi.php?success=1';
-      } else {
-        showNotification('error', data.message || 'Terjadi kesalahan saat menyimpan transaksi');
-      }
+        if (data.success) {
+            // Tampilkan SweetAlert selama 3 detik sebelum redirect
+            Swal.fire({
+                icon: 'success',
+                title: 'Sukses!',
+                text: data.message,
+                timer: 3000, // Tampilkan selama 3 detik
+                timerProgressBar: true,
+                showConfirmButton: false,
+                willClose: () => {
+                    // Redirect ke halaman invoice setelah timer selesai
+                    window.location.href = data.invoice_url;
+                }
+            });
+        } else {
+            showNotification('error', data.message || 'Terjadi kesalahan saat menyimpan transaksi');
+        }
     })
     .catch(error => {
-      console.error('Error:', error);
-      showNotification('error', 'Terjadi kesalahan saat menyimpan transaksi');
+        console.error('Error:', error);
+        showNotification('error', 'Terjadi kesalahan saat menyimpan transaksi');
     });
-  }
+}
 
   // Event listener untuk tombol "Edit"
   document.getElementById('btnEdit').addEventListener('click', function() {
@@ -863,95 +887,6 @@ error_log("Outlet ID in session: " . ($_SESSION['outlet_id'] ?? 'null'));
     updateButtonStyles('btnEdit');
 });
 
-// Fungsi untuk export ke Excel
-document.getElementById('btnExportExcel').addEventListener('click', function() {
-  // Tampilkan dialog untuk memilih periode
-  Swal.fire({
-    title: 'Export Data Transaksi',
-    html: `
-      <div class="text-left">
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-1">Tanggal Mulai</label>
-          <input type="date" id="exportStartDate" class="w-full p-2 border rounded">
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm font-medium mb-1">Tanggal Akhir</label>
-          <input type="date" id="exportEndDate" class="w-full p-2 border rounded">
-        </div>
-      </div>
-    `,
-    showCancelButton: true,
-    confirmButtonText: 'Export',
-    cancelButtonText: 'Batal',
-    focusConfirm: false,
-    preConfirm: () => {
-      const startDate = document.getElementById('exportStartDate').value;
-      const endDate = document.getElementById('exportEndDate').value;
-      
-      if (!startDate || !endDate) {
-        Swal.showValidationMessage('Harap isi kedua tanggal');
-        return false;
-      }
-      
-      return { startDate, endDate };
-    }
-  }).then((result) => {
-    if (result.isConfirmed) {
-      exportToExcel(result.value.startDate, result.value.endDate);
-    }
-  });
-});
-
-// Fungsi untuk melakukan export
-function exportToExcel(startDate, endDate) {
-  // Tampilkan loading
-  Swal.fire({
-    title: 'Menyiapkan Excel',
-    html: 'Sedang memproses data...',
-    allowOutsideClick: false,
-    didOpen: () => {
-      Swal.showLoading();
-    }
-  });
-
-  // Kirim request ke server
-  fetch('export_transaksi_excel.php', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: `start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}&outlet_id=<?php echo $_SESSION['id_outlet'] ?? ''; ?>`
-  })
-  .then(response => {
-    if (!response.ok) throw new Error('Gagal mengunduh file');
-    return response.blob();
-  })
-  .then(blob => {
-    // Buat URL untuk blob
-    const url = window.URL.createObjectURL(blob);
-    
-    // Buat link untuk download
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Laporan_Transaksi_${startDate}_sd_${endDate}.xlsx`;
-    document.body.appendChild(a);
-    a.click();
-    
-    // Bersihkan
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
-    
-    Swal.close();
-  })
-  .catch(error => {
-    console.error('Error:', error);
-    Swal.fire({
-      icon: 'error',
-      title: 'Gagal',
-      text: 'Terjadi kesalahan saat mengekspor data'
-    });
-  });
-}
   </script>
 </body>
 </html>

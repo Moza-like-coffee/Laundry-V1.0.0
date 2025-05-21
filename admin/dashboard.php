@@ -25,52 +25,47 @@ include 'sidebar.php';
 </head>
 <body class="bg-gradient-to-b from-[#121c2a] to-[#243a57] min-h-screen flex">
 
+  <div id="mainContent" class="flex-1 flex flex-col p-8 ml-0 sm:ml-80 space-y-8">
 
-
-     <div id="mainContent" class="flex-1 flex flex-col p-8 ml-0 sm:ml-80 space-y-8">
-
-
-     <section class="max-w-4xl rounded-lg p-6 text-center text-white bg-gradient-to-r from-[#4b3399] to-[#9aa9f9] mt-10 sm:mt-0">
+    <section class="max-w-4xl rounded-lg p-6 text-center text-white bg-gradient-to-r from-[#4b3399] to-[#9aa9f9] mt-10 sm:mt-0">
       <p class="text-lg font-semibold">Halo <strong><?php echo htmlspecialchars($_SESSION['username']); ?></strong>!</p>
       <p class="text-sm mt-1">Anda login sebagai <strong><?php echo htmlspecialchars($_SESSION['role']); ?></strong></p>
     </section>
 
-
-
+    <?php if ($_SESSION['role'] !== 'kasir'): ?>
     <section class="max-w-4xl w-full flex flex-col sm:flex-row gap-6">
-  <article class="flex-1 bg-gradient-to-r from-[#7f7ed2] to-[#b38adf] rounded-md p-6 flex justify-between items-center text-white">
-    <div>
-      <h2 class="text-2xl font-semibold mb-3">Total Outlet</h2>
-      <div class="flex items-center gap-3">
-        <i class="fas fa-shopping-cart text-5xl"></i>
-        <div class="text-2xl font-medium"><?php echo $outlet; ?></div>
-      </div>
-    </div>
-  </article>
+      <article class="flex-1 bg-gradient-to-r from-[#7f7ed2] to-[#b38adf] rounded-md p-6 flex justify-between items-center text-white">
+        <div>
+          <h2 class="text-2xl font-semibold mb-3">Total Outlet</h2>
+          <div class="flex items-center gap-3">
+            <i class="fas fa-shopping-cart text-5xl"></i>
+            <div class="text-2xl font-medium"><?php echo $outlet; ?></div>
+          </div>
+        </div>
+      </article>
 
-  <article class="flex-1 bg-gradient-to-r from-[#7f7ed2] to-[#b38adf] rounded-md p-6 flex justify-between items-center text-white">
-    <div>
-      <h2 class="text-2xl font-semibold mb-3">Total Pelanggan</h2>
-      <div class="flex items-center gap-3">
-        <i class="far fa-user text-5xl"></i>
-        <div class="text-2xl font-medium"><?php echo $member; ?></div>
-      </div>
-    </div>
-  </article>
+      <article class="flex-1 bg-gradient-to-r from-[#7f7ed2] to-[#b38adf] rounded-md p-6 flex justify-between items-center text-white">
+        <div>
+          <h2 class="text-2xl font-semibold mb-3">Total Pelanggan</h2>
+          <div class="flex items-center gap-3">
+            <i class="far fa-user text-5xl"></i>
+            <div class="text-2xl font-medium"><?php echo $member; ?></div>
+          </div>
+        </div>
+      </article>
 
-  <article class="flex-1 bg-gradient-to-r from-[#7f7ed2] to-[#b38adf] rounded-md p-6 flex justify-between items-center text-white">
-    <div>
-      <h2 class="text-2xl font-semibold mb-3">Total Karyawan</h2>
-      <div class="flex items-center gap-3">
-        <i class="fas fa-user-tie text-5xl"></i>
-        <div class="text-2xl font-medium"><?php echo $karyawan; ?></div>
-      </div>
-    </div>
-  </article>
-</section>
-
+      <article class="flex-1 bg-gradient-to-r from-[#7f7ed2] to-[#b38adf] rounded-md p-6 flex justify-between items-center text-white">
+        <div>
+          <h2 class="text-2xl font-semibold mb-3">Total Karyawan</h2>
+          <div class="flex items-center gap-3">
+            <i class="fas fa-user-tie text-5xl"></i>
+            <div class="text-2xl font-medium"><?php echo $karyawan; ?></div>
+          </div>
+        </div>
+      </article>
+    </section>
+    <?php endif; ?>
 
   </div>
 </body>
 </html>
-

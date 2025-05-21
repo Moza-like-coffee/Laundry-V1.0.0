@@ -154,10 +154,13 @@ try {
         $mysqli->commit();
 
         // Set session success message
+
         $_SESSION['success_message'] = "Transaksi berhasil disimpan dengan kode invoice: $kode_invoice";
-        
-        // Redirect ke halaman transaksi dengan parameter success
-        header("Location: menu_transaksi.php?success=1");
+        echo json_encode([
+            'success' => true,
+            'message' => 'Transaksi berhasil disimpan',
+            'invoice_url' => 'invoice.php?id=' . $id_transaksi
+        ]);
         exit();
 
     } catch (Exception $e) {

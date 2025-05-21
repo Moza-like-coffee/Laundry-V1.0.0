@@ -24,6 +24,7 @@ while ($row = mysqli_fetch_assoc($result_outlets)) {
   <meta content="width=device-width, initial-scale=1" name="viewport"/>
   <title>Nyuci Kilat</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script>
     tailwind.config = {
       theme: {
@@ -46,6 +47,7 @@ while ($row = mysqli_fetch_assoc($result_outlets)) {
     }
   </script>
   <style>
+    
       html {
       scroll-behavior: smooth;
     }
@@ -91,21 +93,64 @@ while ($row = mysqli_fetch_assoc($result_outlets)) {
       height: 100%;
       object-fit: cover;
     }
+    .sticky-nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  animation: slideDown 0.3s ease-out;
+}
+
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
   </style>
 </head>
 <body class="bg-background font-sans">
   <!-- Sticky Header -->
-  <header id="navbar" class="flex items-center justify-between px-6 py-4 bg-white sticky-nav">
-    <img alt="logo" class="w-12 h-12" height="50" src="assets/img/logo.png" width="50"/>
-    <nav class="flex space-x-6 text-base font-medium">
-      <a class="text-black hover:underline" href="index.php">Home</a>
-      <a class="text-black hover:underline" href="menu_invoice.php">Cek Status Laundry</a>
-    </nav>
-    <button class="bg-primary text-white px-5 py-2 rounded-md text-base font-medium hover:bg-blue-700 transition-colors" type="button">
-      <a href="login.php">Login</a>
-    </button>
-  </header>
+  <header id="navbar" class="flex items-center justify-between px-4 py-3 bg-white sticky-nav md:px-6 md:py-4">
+  <div class="flex items-center">
+    <img alt="logo" class="w-10 h-10 md:w-12 md:h-12" height="50" src="assets/img/logo.png" width="50"/>
+    <span class="ml-2 text-lg font-bold md:hidden">Nyuci Kilat</span>
+  </div>
   
+  <!-- Mobile menu button -->
+  <button id="mobile-menu-button" class="p-2 rounded-md md:hidden focus:outline-none">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+    </svg>
+  </button>
+  
+  <!-- Desktop Navigation -->
+  <nav class="hidden space-x-6 text-base font-medium md:flex">
+    <a class="text-black hover:underline" href="index.php">Home</a>
+    <a class="text-black hover:underline" href="#tentang-kami">Tentang Kami</a>
+    <a class="text-black hover:underline" href="#fakta-nyuci">Fakta Nyuci Kilat</a>
+    <a class="text-black hover:underline" href="menu_invoice.php">Cek Status Laundry</a>
+  </nav>
+  
+  <button class="hidden bg-primary text-white px-5 py-2 rounded-md text-base font-medium hover:bg-blue-700 transition-colors md:block" type="button">
+    <a href="login.php">Login</a>
+  </button>
+  
+  <!-- Mobile Menu (hidden by default) -->
+  <div id="mobile-menu" class="absolute top-full left-0 right-0 bg-white shadow-lg hidden md:hidden">
+    <div class="px-2 pt-2 pb-3 space-y-1">
+      <a class="block px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50" href="index.php">Home</a>
+      <a class="block px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50" href="#tentang-kami">Tentang Kami</a>
+      <a class="block px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50" href="#fakta-nyuci">Fakta Nyuci Kilat</a>
+      <a class="block px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50" href="menu_invoice.php">Cek Status Laundry</a>
+      <a class="block px-3 py-2 text-base font-medium text-white bg-primary rounded-md text-center" href="login.php">Login</a>
+    </div>
+  </div>
+</header>
   <!-- Add padding to account for fixed navbar -->
   <div class="pt-20"></div>
   
@@ -307,6 +352,48 @@ while ($row = mysqli_fetch_assoc($result_outlets)) {
     </div>
   </main>
 
+  <footer class="bg-[#F2F2F2] border-t border-gray-300 py-8 px-4 sm:px-8">
+  <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+    <!-- Company Info -->
+    <div class="text-center md:text-left">
+      <div class="flex items-center justify-center md:justify-start mb-4">
+        <img src="assets/img/logo.png" alt="Nyuci Kilat Logo" class="w-10 h-10 mr-2">
+        <span class="text-xl font-bold text-primary">Nyuci Kilat</span>
+      </div>
+      <p class="text-sm text-gray-600 mb-4">
+      Nyuci Kilat hadir untuk membantu kamu menghemat waktu dan tenaga. Kami percaya, cucian bersih bisa bikin hari-hari jadi lebih semangat!
+      </p>
+    </div>
+    
+    <!-- Headquarters Address -->
+    <div class="text-center md:text-left">
+      <h3 class="font-semibold text-gray-800 mb-3">Kantor Pusat</h3>
+      <address class="text-sm text-gray-600 not-italic">
+        Jl Sumedang raya<br>
+        Kabupaten Sumedang, Provinsi Jawa Barat<br>
+        Indonesia<br>
+        <a href="mailto:nyucikilat@gmail.com" class="text-primary hover:underline">nyucikilat@gmail.com</a><br>
+        <a href="tel:+628123456789" class="text-primary hover:underline">+62 812 3456 789</a>
+      </address>
+    </div>
+    
+    <!-- Social Media -->
+<div class="text-center md:text-left">
+  <h3 class="font-semibold text-gray-800 mb-3">Hubungi Kami</h3>
+  <div class="flex justify-center md:justify-start space-x-4">
+    <a href="https://wa.me/+628984612344" target="_blank" class="text-2xl text-green-500 hover:text-green-600 transition-colors">
+      <i class="fab fa-whatsapp"></i>
+    </a>
+    <a href="https://instagram.com/nyucikilat" target="_blank" class="text-2xl text-pink-600 hover:text-pink-700 transition-colors">
+      <i class="fab fa-instagram"></i>
+    </a>
+  </div>
+  <p class="text-sm text-gray-600 mt-4">
+    Ikuti kami di media sosial untuk promo dan info terbaru
+  </p>
+</div>
+</footer>
+
   <footer class="bg-white border-t border-black text-center py-3 font-extrabold font-mono text-sm">
     © 2025 Nyuci Kilat. All rights reserved.
   </footer>
@@ -479,19 +566,27 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
   });
-      // Sticky navbar functionality
-      const navbar = document.getElementById('navbar');
-      const headerOffset = navbar.offsetTop;
-      
-      function stickyNav() {
-        if (window.pageYOffset > headerOffset) {
-          navbar.classList.add('sticky-nav');
-        } else {
-          navbar.classList.remove('sticky-nav');
-        }
-      }
-      
-      window.addEventListener('scroll', stickyNav);
+
+const navbar = document.getElementById('navbar');
+const headerOffset = navbar.offsetTop;
+
+function stickyNav() {
+  if (window.pageYOffset > headerOffset) {
+    if (!navbar.classList.contains('sticky-nav')) {
+      navbar.classList.add('sticky-nav');
+      // Adjust padding based on screen size
+      const paddingValue = window.innerWidth < 768 ? '72px' : '80px';
+      document.body.style.paddingTop = paddingValue;
+    }
+  } else {
+    if (navbar.classList.contains('sticky-nav')) {
+      navbar.classList.remove('sticky-nav');
+      document.body.style.paddingTop = '0';
+    }
+  }
+}
+
+window.addEventListener('scroll', stickyNav);
       
       // Make banner responsive
       function adjustBannerHeight() {
@@ -509,6 +604,45 @@ document.addEventListener('DOMContentLoaded', function() {
       adjustBannerHeight();
       window.addEventListener('resize', adjustBannerHeight);
     });
+
+    // Mobile menu toggle
+const mobileMenuButton = document.getElementById('mobile-menu-button');
+const mobileMenu = document.getElementById('mobile-menu');
+
+mobileMenuButton.addEventListener('click', function() {
+  const isExpanded = mobileMenu.classList.contains('hidden');
+  
+  if (isExpanded) {
+    mobileMenu.classList.remove('hidden');
+    mobileMenu.classList.add('block');
+    mobileMenuButton.innerHTML = `
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    `;
+  } else {
+    mobileMenu.classList.remove('block');
+    mobileMenu.classList.add('hidden');
+    mobileMenuButton.innerHTML = `
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+      </svg>
+    `;
+  }
+});
+
+// Close mobile menu when clicking on a link
+mobileMenu.querySelectorAll('a').forEach(link => {
+  link.addEventListener('click', () => {
+    mobileMenu.classList.remove('block');
+    mobileMenu.classList.add('hidden');
+    mobileMenuButton.innerHTML = `
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+      </svg>
+    `;
+  });
+});
   </script>
 </body>
 </html>
