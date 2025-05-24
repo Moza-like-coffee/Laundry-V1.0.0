@@ -167,6 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <button id="btnTambah" class="bg-[#C7D9F9] border border-black rounded-md px-4 py-2 text-[14px] font-normal w-full sm:w-auto">Tambah Outlet</button>
             <button id="btnEdit" class="bg-[#FAF5F0] border border-black rounded-md px-4 py-2 text-[14px] font-normal w-full sm:w-auto">Edit Outlet</button>
             <button id="btnHapus" class="bg-[#FAF5F0] border border-black rounded-md px-4 py-2 text-[14px] font-normal w-full sm:w-auto">Hapus Outlet</button>
+            <button id="btnInfo" class="bg-[#FAF5F0] border border-black rounded-md px-4 py-2 text-[14px] font-normal w-full sm:w-auto">Info Outlet</button>
           </div>
         </div>
 
@@ -194,9 +195,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <!-- Script untuk handle tombol -->
   <script>
   // Fungsi untuk mengubah tombol yang aktif dan non-aktif
-// Fungsi untuk mengubah tombol yang aktif dan non-aktif
 function updateButtonStyles(activeButtonId) {
-    const buttons = ['btnTambah', 'btnEdit', 'btnHapus'];
+    const buttons = ['btnTambah', 'btnEdit', 'btnHapus', 'btnInfo'];
     buttons.forEach(id => {
         const button = document.getElementById(id);
         if (id === activeButtonId) {
@@ -217,6 +217,7 @@ function updateButtonStyles(activeButtonId) {
         }
     });
 }
+
 
 
   // Event listener untuk tombol "Edit"
@@ -303,6 +304,25 @@ document.getElementById('btnHapus').addEventListener('click', function() {
     });
 
     updateButtonStyles('btnHapus');
+});
+
+document.getElementById('btnInfo').addEventListener('click', function() {
+    const container = document.getElementById('form-container');
+    container.innerHTML = '<p class="text-center py-4">Memuat data outlet...</p>';
+
+    fetch('info_outlet.php')
+    .then(response => response.text())
+    .then(data => {
+        container.innerHTML = data;
+        
+        // Add any additional event listeners for the info display if needed
+    })
+    .catch(error => {
+        console.error('Error loading outlet info:', error);
+        container.innerHTML = '<p class="text-red-500">Gagal memuat informasi outlet.</p>';
+    });
+
+    updateButtonStyles('btnInfo');
 });
 
 // Fungsi untuk memeriksa apakah form hapus sedang aktif

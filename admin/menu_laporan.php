@@ -298,14 +298,22 @@ $statusPembayaranOptions = "<option value='' disabled selected>Pilih Status</opt
           </table>
         </div>
         
-        <div class="mt-6 flex justify-end">
-          <button onclick="window.print()" class="bg-[#c7d9f7] border border-black rounded-md px-6 py-2 text-sm font-normal hover:bg-blue-200 mr-2">
-            <i class="fas fa-print mr-2"></i>Cetak Laporan
-          </button>
-          <button onclick="exportToExcel()" class="bg-[#f8d7da] border border-black rounded-md px-6 py-2 text-sm font-normal hover:bg-red-200">
-  <i class="fas fa-file-excel mr-2"></i>Export Excel
-</button>
-        </div>
+        <div class="mt-8 flex justify-end space-x-3">
+    <a href="cetak_laporan.php?<?= http_build_query($_GET) ?>&print=true" 
+       target="_blank"
+       class="no-print inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+        <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
+        </svg>
+        Cetak Laporan
+    </a>
+    <button onclick="exportToExcel()" class="no-print inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+        <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+        </svg>
+        Export Excel
+    </button>
+</div>
       </div>
       <?php endif; ?>
     </section>

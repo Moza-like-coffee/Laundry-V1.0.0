@@ -92,13 +92,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (!empty($namaLengkap) && !empty($username) && !empty($password) && !empty($role)) {
             // Versi ada hashnya
-            // $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-            // $query = "INSERT INTO tb_user (nama, id_outlet, username, password, role) 
-            //           VALUES ('$namaLengkap', ".($role === 'admin' ? 'NULL' : "'$outlet'").", '$username', '$hashedPassword', '$role')";
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+            $query = "INSERT INTO tb_user (nama, id_outlet, username, password, role) 
+                      VALUES ('$namaLengkap', ".($role === 'admin' ? 'NULL' : "'$outlet'").", '$username', '$hashedPassword', '$role')";
 
             // Versi langsung tanpa hash
-            $query = "INSERT INTO tb_user (nama, id_outlet, username, password, role) 
-                      VALUES ('$namaLengkap', ".($role === 'admin' ? 'NULL' : "'$outlet'").", '$username', '$password', '$role')";
+            // $query = "INSERT INTO tb_user (nama, id_outlet, username, password, role) 
+            //           VALUES ('$namaLengkap', ".($role === 'admin' ? 'NULL' : "'$outlet'").", '$username', '$password', '$role')";
             
             if (mysqli_query($mysqli, $query)) {
                 $_SESSION['status'] = 'success';
@@ -211,11 +211,12 @@ include 'sidebar.php';
         <main class="flex-1 flex justify-center items-center p-6 md:p-10 min-h-screen ml-0 sm:ml-[250px]">
             <section class="bg-white rounded-md p-6 w-full max-w-4xl">
                 <div class="border-b border-black pb-2 mb-4">
-                    <div class="flex flex-wrap gap-2">
-                        <button id="btnTambah" class="bg-[#C7D9F9] border border-black rounded-md px-4 py-2 text-[14px] font-normal w-full sm:w-auto">Tambah User</button>
-                        <button id="btnEdit" class="bg-[#FAF5F0] border border-black rounded-md px-4 py-2 text-[14px] font-normal w-full sm:w-auto">Edit User</button>
-                        <button id="btnHapus" class="bg-[#FAF5F0] border border-black rounded-md px-4 py-2 text-[14px] font-normal w-full sm:w-auto">Hapus User</button>
-                    </div>
+                <div class="flex flex-wrap gap-2">
+    <button id="btnTambah" class="bg-[#C7D9F9] border border-black rounded-md px-4 py-2 text-[14px] font-normal w-full sm:w-auto">Tambah User</button>
+    <button id="btnEdit" class="bg-[#FAF5F0] border border-black rounded-md px-4 py-2 text-[14px] font-normal w-full sm:w-auto">Edit User</button>
+    <button id="btnHapus" class="bg-[#FAF5F0] border border-black rounded-md px-4 py-2 text-[14px] font-normal w-full sm:w-auto">Hapus User</button>
+    <button id="btnInfo" class="bg-[#FAF5F0] border border-black rounded-md px-4 py-2 text-[14px] font-normal w-full sm:w-auto">Info User</button>
+</div>
                 </div>
 
                 <div id="form-container">
@@ -263,26 +264,29 @@ include 'sidebar.php';
     <script>
     // Fungsi untuk mengubah tombol yang aktif dan non-aktif
     function updateButtonStyles(activeButtonId) {
-        const buttons = ['btnTambah', 'btnEdit', 'btnHapus'];
-        buttons.forEach(id => {
-            const button = document.getElementById(id);
-            if (id === activeButtonId) {
-                if (id === 'btnHapus') {
-                    button.classList.add('bg-[#d81e2a]', 'text-white');
-                    button.classList.remove('bg-[#FAF5F0]', 'bg-[#C7D9F9]');
-                } else if (id === 'btnTambah') {
-                    button.classList.add('bg-[#C7D9F9]');
-                    button.classList.remove('bg-[#FAF5F0]', 'bg-[#d81e2a]', 'text-white');
-                } else {
-                    button.classList.add('bg-[#C7D9F9]');
-                    button.classList.remove('bg-[#FAF5F0]', 'bg-[#d81e2a]', 'text-white');
-                }
+    const buttons = ['btnTambah', 'btnEdit', 'btnHapus', 'btnInfo'];
+    buttons.forEach(id => {
+        const button = document.getElementById(id);
+        if (id === activeButtonId) {
+            if (id === 'btnHapus') {
+                button.classList.add('bg-[#d81e2a]', 'text-white');
+                button.classList.remove('bg-[#FAF5F0]', 'bg-[#C7D9F9]');
+            } else if (id === 'btnTambah') {
+                button.classList.add('bg-[#C7D9F9]');
+                button.classList.remove('bg-[#FAF5F0]', 'bg-[#d81e2a]', 'text-white');
+            } else if (id === 'btnInfo') {
+                button.classList.add('bg-[#C7D9F9]');
+                button.classList.remove('bg-[#FAF5F0]', 'bg-[#d81e2a]', 'text-white');
             } else {
-                button.classList.add('bg-[#FAF5F0]');
-                button.classList.remove('bg-[#C7D9F9]', 'bg-[#d81e2a]', 'text-white');
+                button.classList.add('bg-[#C7D9F9]');
+                button.classList.remove('bg-[#FAF5F0]', 'bg-[#d81e2a]', 'text-white');
             }
-        });
-    }
+        } else {
+            button.classList.add('bg-[#FAF5F0]');
+            button.classList.remove('bg-[#C7D9F9]', 'bg-[#d81e2a]', 'text-white');
+        }
+    });
+}
 
     // Event listener untuk perubahan role
     document.addEventListener('DOMContentLoaded', function() {
@@ -409,6 +413,23 @@ include 'sidebar.php';
         updateButtonStyles('btnTambah');
     });
 
+    document.getElementById('btnInfo').addEventListener('click', function() {
+    const container = document.getElementById('form-container');
+    container.innerHTML = ''; // Kosongkan container
+    
+    // Load info pengguna
+    fetch('info_user.php')
+    .then(response => response.text())
+    .then(data => {
+        container.innerHTML = data;
+    })
+    .catch(error => {
+        console.error('Error loading info:', error);
+        container.innerHTML = '<p class="text-red-500">Gagal memuat informasi pengguna.</p>';
+    });
+
+    updateButtonStyles('btnInfo');
+});
     // Event listener untuk tombol "Hapus"
     document.getElementById('btnHapus').addEventListener('click', function() {
         const container = document.getElementById('form-container');

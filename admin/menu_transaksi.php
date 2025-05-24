@@ -53,8 +53,9 @@ error_log("Outlet ID in session: " . ($_SESSION['outlet_id'] ?? 'null'));
           <div class="flex flex-wrap gap-2">
           <div class="flex justify-end mt-2">
 </div>
-            <button id="btnTambah" class="bg-[#C7D9F9] hover:bg-[#B0C9F5] border border-black rounded-md px-4 py-2 text-sm font-normal w-full sm:w-auto transition-colors">Buat Transaksi</button>
-            <button id="btnEdit" class="bg-[#FAF5F0] hover:bg-[#F0E6D9] border border-black rounded-md px-4 py-2 text-sm font-normal w-full sm:w-auto transition-colors">Edit Transaksi</button>
+<button id="btnTambah" class="bg-[#C7D9F9] hover:bg-[#B0C9F5] border border-black rounded-md px-4 py-2 text-sm font-normal w-full sm:w-auto transition-colors">Buat Transaksi</button>
+    <button id="btnEdit" class="bg-[#FAF5F0] hover:bg-[#F0E6D9] border border-black rounded-md px-4 py-2 text-sm font-normal w-full sm:w-auto transition-colors">Edit Transaksi</button>
+    <button id="btnInfo" class="bg-[#FAF5F0] hover:bg-[#F0E6D9] border border-black rounded-md px-4 py-2 text-sm font-normal w-full sm:w-auto transition-colors">Info Transaksi</button>
           </div>
         </div>
 
@@ -360,20 +361,35 @@ function showNotification(type, message) {
     }
 }
   
-  function updateButtonStyles(activeButtonId) {
-    const buttons = ['btnTambah', 'btnEdit'];
+function updateButtonStyles(activeButtonId) {
+    const buttons = ['btnTambah', 'btnEdit', 'btnInfo'];
+    
     buttons.forEach(id => {
-      const button = document.getElementById(id);
-      if (id === activeButtonId) {
-        button.classList.add('bg-[#C7D9F9]');
-        button.classList.remove('bg-[#FAF5F0]');
-      } else {
-        button.classList.add('bg-[#FAF5F0]');
-        button.classList.remove('bg-[#C7D9F9]');
-      }
+        const button = document.getElementById(id);
+        
+        // First remove all possible styling classes
+        button.classList.remove(
+            'bg-[#C7D9F9]', 
+            'bg-[#FAF5F0]', 
+            'bg-[#d81e2a]', 
+            'text-white'
+        );
+
+        if (id === activeButtonId) {
+            // Active button styling
+            button.classList.add('bg-[#C7D9F9]');
+            
+            // Remove inactive styles if they exist
+            button.classList.remove('bg-[#FAF5F0]');
+        } else {
+            // Inactive button styling
+            button.classList.add('bg-[#FAF5F0]');
+            
+            // Remove active styles if they exist
+            button.classList.remove('bg-[#C7D9F9]');
+        }
     });
-  }
-  
+}
   function getAddFormHTML() {
     return `
           <form class="flex flex-col gap-3 text-sm" method="POST" id="formTambah">
@@ -555,52 +571,77 @@ function showNotification(type, message) {
   }
   
   function loadPackages() {
-    const outletId = <?php echo $_SESSION['id_outlet'] ?? 'null'; ?>;
+    // Cek apakah user adalah admin
+    const isAdmin = <?php echo ($_SESSION['role'] ?? '') === 'admin' ? 'true' : 'false'; ?>;
     
-    if (!outletId) {
-      console.error('Outlet ID tidak ditemukan');
-      showNotification('error', 'Outlet ID tidak ditemukan. Silakan login ulang.');
-      return;
+    if (isAdmin) {
+        // Jika admin, ambil semua paket tanpa filter outlet
+        fetch('get_all_packages.php')
+        .then(response => response.json())
+        .then(data => {
+            updatePackageSelect(data);
+        })
+        .catch(error => {
+            console.error('Error loading packages:', error);
+            showPackageError();
+        });
+    } else {
+        // Jika bukan admin, ambil paket berdasarkan outlet
+        const outletId = <?php echo $_SESSION['id_outlet'] ?? 'null'; ?>;
+        
+        if (!outletId) {
+            console.error('Outlet ID tidak ditemukan');
+            showNotification('error', 'Outlet ID tidak ditemukan. Silakan login ulang.');
+            return;
+        }
+        
+        fetch('get_packages.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `outlet_id=${outletId}`
+        })
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return response.json();
+        })
+        .then(data => {
+            updatePackageSelect(data);
+        })
+        .catch(error => {
+            console.error('Error loading packages:', error);
+            showPackageError();
+        });
     }
-    
-    fetch('get_packages.php', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: `outlet_id=${outletId}`
-    })
-    .then(response => {
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return response.json();
-    })
-    .then(data => {
-      const select = document.getElementById('paket');
-      if (select) {
+}
+
+function updatePackageSelect(data) {
+    const select = document.getElementById('paket');
+    if (select) {
         select.innerHTML = '<option value="" disabled selected>Pilih Paket</option>';
         
         if (!data || data.length === 0) {
-          select.innerHTML = '<option value="" disabled selected>Tidak ada paket tersedia</option>';
-          return;
+            select.innerHTML = '<option value="" disabled selected>Tidak ada paket tersedia</option>';
+            return;
         }
         
         data.forEach(pkg => {
-          const option = document.createElement('option');
-          option.value = pkg.id;
-          option.textContent = `${pkg.nama_paket} (${pkg.jenis}) - Rp${pkg.harga.toLocaleString()}`;
-          option.dataset.harga = pkg.harga;
-          select.appendChild(option);
+            const option = document.createElement('option');
+            option.value = pkg.id;
+            option.textContent = `${pkg.nama_paket} (${pkg.jenis}) - Rp${pkg.harga.toLocaleString()}`;
+            option.dataset.harga = pkg.harga;
+            select.appendChild(option);
         });
-      }
-    })
-    .catch(error => {
-      console.error('Error loading packages:', error);
-      const select = document.getElementById('paket');
-      if (select) {
+    }
+}
+
+function showPackageError() {
+    const select = document.getElementById('paket');
+    if (select) {
         select.innerHTML = '<option value="" disabled selected>Gagal memuat paket</option>';
-      }
-    });
-  }
+    }
+}
   
   function showConfirmation() {
     // Validate inputs
@@ -728,7 +769,29 @@ function showNotification(type, message) {
         showNotification('error', 'Terjadi kesalahan saat menyimpan transaksi');
     });
 }
+// Add this to your existing event listeners
+document.getElementById('btnInfo').addEventListener('click', showInfoTransactions);
 
+function showInfoTransactions() {
+    const container = document.getElementById('form-container');
+    container.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-white"></i></div>';
+    
+    fetch('info_transaksi.php')
+        .then(response => response.text())
+        .then(data => {
+            container.innerHTML = data;
+            updateButtonStyles('btnInfo');
+        })
+        .catch(error => {
+            console.error('Error loading transaction info:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: 'Gagal memuat informasi transaksi',
+                confirmButtonText: 'OK'
+            });
+        });
+}
   // Event listener untuk tombol "Edit"
   document.getElementById('btnEdit').addEventListener('click', function() {
     const container = document.getElementById('form-container');

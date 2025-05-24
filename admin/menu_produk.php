@@ -172,10 +172,11 @@ include 'sidebar.php';
             <section class="bg-white rounded-md p-6 w-full max-w-4xl">
                 <div class="border-b border-black pb-2 mb-4">
                     <div class="flex flex-wrap gap-2">
-                        <button id="btnTambah" class="bg-[#C7D9F9] border border-black rounded-md px-4 py-2 text-[14px] font-normal w-full sm:w-auto">Tambah Produk</button>
-                        <button id="btnEdit" class="bg-[#FAF5F0] border border-black rounded-md px-4 py-2 text-[14px] font-normal w-full sm:w-auto">Edit Produk</button>
-                        <button id="btnHapus" class="bg-[#FAF5F0] border border-black rounded-md px-4 py-2 text-[14px] font-normal w-full sm:w-auto">Hapus Produk</button>
-                    </div>
+    <button id="btnTambah" class="bg-[#C7D9F9] border border-black rounded-md px-4 py-2 text-[14px] font-normal w-full sm:w-auto">Tambah Produk</button>
+    <button id="btnEdit" class="bg-[#FAF5F0] border border-black rounded-md px-4 py-2 text-[14px] font-normal w-full sm:w-auto">Edit Produk</button>
+    <button id="btnHapus" class="bg-[#FAF5F0] border border-black rounded-md px-4 py-2 text-[14px] font-normal w-full sm:w-auto">Hapus Produk</button>
+    <button id="btnInfo" class="bg-[#FAF5F0] border border-black rounded-md px-4 py-2 text-[14px] font-normal w-full sm:w-auto">Info Produk</button>
+</div>
                 </div>
 
                 <div id="form-container">
@@ -217,27 +218,29 @@ include 'sidebar.php';
     <script>
     // Fungsi untuk mengubah tombol yang aktif dan non-aktif
     function updateButtonStyles(activeButtonId) {
-        const buttons = ['btnTambah', 'btnEdit', 'btnHapus'];
-        buttons.forEach(id => {
-            const button = document.getElementById(id);
-            if (id === activeButtonId) {
-                if (id === 'btnHapus') {
-                    button.classList.add('bg-[#d81e2a]', 'text-white');
-                    button.classList.remove('bg-[#FAF5F0]', 'bg-[#C7D9F9]');
-                } else if (id === 'btnTambah') {
-                    button.classList.add('bg-[#C7D9F9]');
-                    button.classList.remove('bg-[#FAF5F0]', 'bg-[#d81e2a]', 'text-white');
-                } else {
-                    button.classList.add('bg-[#C7D9F9]');
-                    button.classList.remove('bg-[#FAF5F0]', 'bg-[#d81e2a]', 'text-white');
-                }
+    const buttons = ['btnTambah', 'btnEdit', 'btnHapus', 'btnInfo'];
+    buttons.forEach(id => {
+        const button = document.getElementById(id);
+        if (id === activeButtonId) {
+            if (id === 'btnHapus') {
+                button.classList.add('bg-[#d81e2a]', 'text-white');
+                button.classList.remove('bg-[#FAF5F0]', 'bg-[#C7D9F9]');
+            } else if (id === 'btnTambah') {
+                button.classList.add('bg-[#C7D9F9]');
+                button.classList.remove('bg-[#FAF5F0]', 'bg-[#d81e2a]', 'text-white');
+            } else if (id === 'btnInfo') {
+                button.classList.add('bg-[#C7D9F9]', 'text-white');
+                button.classList.remove('bg-[#FAF5F0]', 'bg-[#C7D9F9]');
             } else {
-                button.classList.add('bg-[#FAF5F0]');
-                button.classList.remove('bg-[#C7D9F9]', 'bg-[#d81e2a]', 'text-white');
+                button.classList.add('bg-[#C7D9F9]');
+                button.classList.remove('bg-[#FAF5F0]', 'bg-[#d81e2a]', 'text-white');
             }
-        });
-    }
-
+        } else {
+            button.classList.add('bg-[#FAF5F0]');
+            button.classList.remove('bg-[#C7D9F9]', 'bg-[#d81e2a]', 'bg-[#C7D9F9]', 'text-white');
+        }
+    });
+}
     // Event listener untuk tombol "Edit"
 document.getElementById('btnEdit').addEventListener('click', function() {
     const container = document.getElementById('form-container');
@@ -315,7 +318,35 @@ document.getElementById('btnEdit').addEventListener('click', function() {
         updateButtonStyles('btnTambah');
     });
 
-    
+    // Event listener for tombol "Info Produk"
+document.getElementById('btnInfo').addEventListener('click', function() {
+    const container = document.getElementById('form-container');
+    container.innerHTML = '';
+
+    fetch('info_produk.php')
+    .then(response => response.text())
+    .then(data => {
+        container.innerHTML = data;
+        
+        // Ekstrak dan jalankan script yang ada dalam form info
+        const scripts = container.querySelectorAll('script');
+        scripts.forEach(script => {
+            const newScript = document.createElement('script');
+            if (script.src) {
+                newScript.src = script.src;
+            } else {
+                newScript.textContent = script.textContent;
+            }
+            document.body.appendChild(newScript).parentNode.removeChild(newScript);
+        });
+    })
+    .catch(error => {
+        console.error('Error loading product info:', error);
+        container.innerHTML = '<p class="text-red-500">Gagal memuat informasi produk.</p>';
+    });
+
+    updateButtonStyles('btnInfo');
+});
 // Event listener untuk tombol "Hapus"
 document.getElementById('btnHapus').addEventListener('click', function() {
     const container = document.getElementById('form-container');

@@ -37,21 +37,21 @@ try {
         exit;
     }
     // hash version
-    // if (!empty($newPassword)) {
-    //     // If password is being changed
-    //     $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
-    //     $query = "UPDATE tb_user SET nama = ?, username = ?, password = ?, role = ? WHERE id = ?";
-    //     $stmt = $mysqli->prepare($query);
-    //     $stmt->bind_param("ssssi", $newNama, $newUsername, $hashedPassword, $newRole, $userId);
-    // } else {
-
-    // Prepare update query
     if (!empty($newPassword)) {
-        // If password is being changed (stored as plaintext)
+        // If password is being changed
+        $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
         $query = "UPDATE tb_user SET nama = ?, username = ?, password = ?, role = ? WHERE id = ?";
         $stmt = $mysqli->prepare($query);
-        $stmt->bind_param("ssssi", $newNama, $newUsername, $newPassword, $newRole, $userId);
+        $stmt->bind_param("ssssi", $newNama, $newUsername, $hashedPassword, $newRole, $userId);
     } else {
+
+    // Prepare update query
+    // if (!empty($newPassword)) {
+    //     // If password is being changed (stored as plaintext)
+    //     $query = "UPDATE tb_user SET nama = ?, username = ?, password = ?, role = ? WHERE id = ?";
+    //     $stmt = $mysqli->prepare($query);
+    //     $stmt->bind_param("ssssi", $newNama, $newUsername, $newPassword, $newRole, $userId);
+    // } else {
         // Without password change
         $query = "UPDATE tb_user SET nama = ?, username = ?, role = ? WHERE id = ?";
         $stmt = $mysqli->prepare($query);

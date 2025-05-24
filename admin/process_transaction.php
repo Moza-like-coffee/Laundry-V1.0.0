@@ -2,13 +2,6 @@
 session_start();
 include '../database/connect.php';
 
-// Validasi session dan outlet_id
-if (!isset($_SESSION['id_outlet'])) {
-    $_SESSION['error_message'] = "Outlet ID tidak ditemukan. Silakan login ulang.";
-    header("Location: menu_transaksi.php?error=1");
-    exit();
-}
-
 // Set timezone ke Indonesia
 date_default_timezone_set('Asia/Jakarta');
 
@@ -107,9 +100,12 @@ try {
             biaya_tambahan, diskon, pajak, status, dibayar, id_user
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         
+        // Gunakan id_outlet dari session atau null jika admin
+        $id_outlet = ($_SESSION['role'] === 'admin') ? null : ($_SESSION['id_outlet'] ?? null);
+        
         $stmt->bind_param(
             "isissssddssi",
-            $_SESSION['id_outlet'],
+            $id_outlet,
             $kode_invoice,
             $_POST['nama-lengkap'],
             $tgl,
@@ -154,7 +150,6 @@ try {
         $mysqli->commit();
 
         // Set session success message
-
         $_SESSION['success_message'] = "Transaksi berhasil disimpan dengan kode invoice: $kode_invoice";
         echo json_encode([
             'success' => true,

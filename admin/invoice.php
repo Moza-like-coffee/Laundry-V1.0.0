@@ -11,11 +11,12 @@ $id_transaksi = $_GET['id'];
 
 // Ambil data transaksi
 $query = "SELECT t.*, m.nama as nama_member, m.tlp, m.alamat, 
-                 u.nama as nama_kasir, o.nama as nama_outlet, o.alamat as alamat_outlet
+                 u.nama as nama_kasir, 
+                 o.nama as nama_outlet, o.alamat as alamat_outlet
           FROM tb_transaksi t
           JOIN tb_member m ON t.id_member = m.id
           JOIN tb_user u ON t.id_user = u.id
-          JOIN tb_outlet o ON t.id_outlet = o.id
+          LEFT JOIN tb_outlet o ON t.id_outlet = o.id
           WHERE t.id = ?";
 $stmt = $mysqli->prepare($query);
 $stmt->bind_param("i", $id_transaksi);
