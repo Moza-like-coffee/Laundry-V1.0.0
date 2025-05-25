@@ -228,16 +228,14 @@ include 'sidebar.php';
             } else if (id === 'btnTambah') {
                 button.classList.add('bg-[#C7D9F9]');
                 button.classList.remove('bg-[#FAF5F0]', 'bg-[#d81e2a]', 'text-white');
-            } else if (id === 'btnInfo') {
-                button.classList.add('bg-[#C7D9F9]', 'text-white');
-                button.classList.remove('bg-[#FAF5F0]', 'bg-[#C7D9F9]');
             } else {
                 button.classList.add('bg-[#C7D9F9]');
                 button.classList.remove('bg-[#FAF5F0]', 'bg-[#d81e2a]', 'text-white');
             }
         } else {
+            // Reset tombol lain ke status non-aktif
             button.classList.add('bg-[#FAF5F0]');
-            button.classList.remove('bg-[#C7D9F9]', 'bg-[#d81e2a]', 'bg-[#C7D9F9]', 'text-white');
+            button.classList.remove('bg-[#C7D9F9]', 'bg-[#d81e2a]', 'text-white');
         }
     });
 }

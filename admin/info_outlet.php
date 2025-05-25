@@ -18,8 +18,8 @@ $totalOutlets = mysqli_num_rows($result);
     </div>
 
     <?php if(mysqli_num_rows($result) > 0): ?>
-        <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Stats Cards - Responsive Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
                 <div class="text-gray-500 text-sm">Total Outlet</div>
                 <div class="text-2xl font-bold text-blue-600"><?= $totalOutlets ?></div>
@@ -36,10 +36,11 @@ $totalOutlets = mysqli_num_rows($result);
             </div>
         </div>
 
-        <!-- Table -->
+        <!-- Responsive Table Container -->
         <div class="bg-white rounded-lg shadow overflow-hidden">
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
+                <!-- Table for larger screens -->
+                <table class="min-w-full divide-y divide-gray-200 hidden md:table">
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Outlet</th>
@@ -86,6 +87,43 @@ $totalOutlets = mysqli_num_rows($result);
                         ?>
                     </tbody>
                 </table>
+
+                <!-- Cards for mobile screens -->
+                <div class="md:hidden space-y-3 p-4">
+                    <?php 
+                    mysqli_data_seek($result, 0); // Reset result pointer
+                    while($row = mysqli_fetch_assoc($result)): 
+                    ?>
+                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mr-3">
+                                <i class="fas fa-store"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-sm font-medium text-gray-900 truncate"><?= htmlspecialchars($row['nama']) ?></h3>
+                                <p class="text-xs text-gray-500">ID: <?= $row['id'] ?></p>
+                                
+                                <div class="mt-2 text-sm text-gray-700">
+                                    <div class="flex items-center mb-1">
+                                        <i class="fas fa-map-marker-alt text-gray-400 mr-2"></i>
+                                        <span class="truncate"><?= htmlspecialchars($row['alamat']) ?></span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-phone-alt text-gray-400 mr-2"></i>
+                                        <span><?= htmlspecialchars($row['tlp']) ?></span>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-2">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        Aktif
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endwhile; ?>
+                </div>
             </div>
         </div>
     <?php else: ?>
