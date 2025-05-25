@@ -28,13 +28,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
      if (!empty($new_password)) {
       // Update password in database (without hashing)
       $update_query = "UPDATE tb_user SET password = ? WHERE id = ?";
-      $update_stmt = $conn->prepare($update_query);
+      $update_stmt = $mysqli->prepare($update_query);
       $update_stmt->bind_param("si", $new_password, $user_id);
       
       if ($update_stmt->execute()) {
           $success_message = "Password berhasil diperbarui!";
       } else {
-          $error_message = "Gagal memperbarui password: " . $conn->error;
+          $error_message = "Gagal memperbarui password: " . $mysqli->error;
       }
   } else {
       $error_message = "Password baru tidak boleh kosong!";
