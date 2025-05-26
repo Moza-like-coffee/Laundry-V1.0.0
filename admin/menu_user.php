@@ -154,28 +154,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit();
         }
     }
-    // Cek apakah ini form hapus pengguna
-    elseif (isset($_POST['nama-lengkap']) && isset($_POST['username'])) {
-        // Handle delete form submission
-        $userId = $_POST['nama-lengkap']; // Ini sebenarnya ID user
-        $username = $_POST['username'];
-        
-        $query = "DELETE FROM tb_user WHERE id = ?";
-        $stmt = $mysqli->prepare($query);
-        $stmt->bind_param("i", $userId);
-        
-        if ($stmt->execute()) {
-            $_SESSION['status'] = 'success';
-            $_SESSION['message'] = 'Pengguna berhasil dihapus!';
-            header("Location: menu_user.php?status=success");
-            exit();
-        } else {
-            $_SESSION['status'] = 'error';
-            $_SESSION['message'] = 'Gagal menghapus pengguna: ' . $mysqli->error;
-            header("Location: menu_user.php?status=error");
-            exit();
-        }
-    }
 }
 // Tampilkan pesan dari session jika ada
 if (isset($_SESSION['message'])) {
@@ -431,88 +409,54 @@ include 'sidebar.php';
     updateButtonStyles('btnInfo');
 });
     // Event listener untuk tombol "Hapus"
-    document.getElementById('btnHapus').addEventListener('click', function() {
-        const container = document.getElementById('form-container');
-        container.innerHTML = '';
+    document.getElementById('btnHapus').addEventListener('click', function () {
+    const container = document.getElementById('form-container');
+    container.innerHTML = ''; // Kosongkan isi kontainer sebelum fetch
 
-        // Query untuk outlet
-        const outletOptions = `<?php 
-            $query = "SELECT id, nama FROM tb_outlet";
-            $result = mysqli_query($mysqli, $query);
-            $options = '';
-            while ($row = mysqli_fetch_assoc($result)) {
-                $options .= "<option value='".$row['id']."'>".$row['nama']."</option>";
-            }
-            echo $options;
-        ?>`;
+    fetch('hapus_user.php')
+        .then(response => response.text())
+        .then(data => {
+            container.innerHTML = data;
 
-        container.innerHTML = `
-        <section class="bg-white rounded-md p-6 w-full max-w-md">
-            <form class="flex flex-col gap-6 text-sm" id="deleteForm" method="post">
-                <h2 class="text-lg font-semibold mb-2 text-gray-700">Data Pengguna yang Akan Dihapus</h2>
-                
-                <div class="flex flex-col gap-3">
-                    <label for="outlet" class="text-[13px] font-semibold">Outlet</label>
-                    <select id="outlet" name="outlet" class="h-9 rounded-md bg-gray-300 px-3 text-sm outline-none cursor-pointer" required>
-                        <option value="" disabled selected>Pilih Outlet</option>
-                        ${outletOptions}
-                    </select>
-                </div>
-                
-                <div class="flex flex-col gap-3">
-                    <label for="nama-lengkap" class="text-[13px] font-semibold">Nama Lengkap</label>
-                    <select id="nama-lengkap" name="nama-lengkap" class="h-9 rounded-md bg-gray-300 px-3 text-sm outline-none cursor-pointer" required disabled>
-                        <option value="" disabled selected>Pilih Outlet terlebih dahulu</option>
-                    </select>
-                </div>
-                
-                <div class="flex flex-col gap-3">
-                    <label for="username" class="text-[13px] font-semibold">Username</label>
-                    <input type="text" id="username" name="username" class="h-9 rounded-md bg-gray-300 px-3 text-sm outline-none" readonly />
-                </div>
+            // Jalankan script dalam konten yang di-load (jika ada)
+            const scripts = container.querySelectorAll('script');
+            scripts.forEach(script => {
+                const newScript = document.createElement('script');
+                if (script.src) {
+                    newScript.src = script.src;
+                } else {
+                    newScript.textContent = script.textContent;
+                }
+                document.body.appendChild(newScript).parentNode.removeChild(newScript);
+            });
 
-                <div class="flex justify-start mt-4">
-                    <button type="submit" class="bg-[#d81e2a] border border-black rounded-md px-6 py-2 text-sm font-normal hover:bg-red-700 text-white">
-                        Hapus Pengguna
-                    </button>
-                </div>
-            </form>
-        </section>
-        `;
+            // Tambahkan konfirmasi Swal sebelum submit form hapus
+            const deleteForm = document.getElementById('deleteForm');
+            if (deleteForm) {
+                deleteForm.addEventListener('submit', function (event) {
+                    event.preventDefault(); // Mencegah submit otomatis
 
-        // Add event listeners for the delete form
-        document.getElementById('outlet').addEventListener('change', function() {
-            const outletId = this.value;
-            if (outletId) {
-                fetch('fetch_user_by_outlet.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `outlet_id=${outletId}`
-                })
-                .then(response => response.text())
-                .then(data => {
-                    document.getElementById('nama-lengkap').innerHTML = '<option value="" disabled selected>Pilih user yang akan dihapus</option>' + data;
-                    document.getElementById('nama-lengkap').disabled = false;
-                    document.getElementById('username').value = '';
-                    
-                    // Update username when user is selected
-                    document.getElementById('nama-lengkap').addEventListener('change', function() {
-                        const selectedOption = this.options[this.selectedIndex];
-                        const username = selectedOption.getAttribute('data-username');
-                        document.getElementById('username').value = username || '';
+                    Swal.fire({
+                        title: 'Apakah Anda yakin?',
+                        text: 'Data pengguna ini akan dihapus secara permanen!',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ya, hapus!',
+                        cancelButtonText: 'Batal',
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.submit(); // Submit jika dikonfirmasi
+                        }
                     });
-                })
-                .catch(error => {
-                    console.error('Error:', error);
                 });
-            } else {
-                document.getElementById('nama-lengkap').innerHTML = '<option value="" disabled selected>Pilih Outlet terlebih dahulu</option>';
-                document.getElementById('nama-lengkap').disabled = true;
-                document.getElementById('username').value = '';
             }
+        })
+        .catch(error => {
+            console.error('Error loading form:', error);
+            container.innerHTML = '<p class="text-red-500">Gagal memuat form hapus.</p>';
         });
+
+    updateButtonStyles('btnHapus');
 
         // Handle form submission
         document.getElementById('deleteForm').addEventListener('submit', function(e) {

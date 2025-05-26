@@ -114,6 +114,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $hargaBaru = $_POST['harga-baru'] ?? '';
         
         if (!empty($idPaket) && !empty($namaBaru) && !empty($jenisBaru) && !empty($hargaBaru)) {
+            // First, validate the jenis value against ENUM options
+            $allowed_jenis = getEnumValues($mysqli, 'tb_paket', 'jenis');
+            
+            if (!in_array($jenisBaru, $allowed_jenis)) {
+                $_SESSION['status'] = 'error';
+                $_SESSION['message'] = 'Jenis produk tidak valid. Pilihan yang tersedia: ' . implode(', ', $allowed_jenis);
+                header("Location: menu_produk.php?status=error");
+                exit();
+            }
+            
+            // Convert harga to integer
+            $hargaBaru = (int) str_replace(['.', ','], '', $hargaBaru);
+            
             $stmt = $mysqli->prepare("UPDATE tb_paket SET nama_paket = ?, jenis = ?, harga = ? WHERE id = ?");
             $stmt->bind_param("ssdi", $namaBaru, $jenisBaru, $hargaBaru, $idPaket);
             
@@ -136,7 +149,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
-
 // Tampilkan pesan dari session jika ada
 if (isset($_SESSION['message'])) {
     $swal_script = "

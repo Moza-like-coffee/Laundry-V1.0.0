@@ -55,11 +55,11 @@ if (mysqli_num_rows($result) > 0) {
           <label for="jenis-produk-2" class="text-[13px] font-semibold">Jenis Produk</label>
           <select id="jenis-produk-2" name="jenis-produk-2" class="h-9 rounded-md bg-gray-300 px-3 text-sm outline-none" aria-required="true">
             <option value="" disabled selected>Pilih Jenis</option>
-            <option value="kiloan">Kiloan</option>
-            <option value="selimut">Selimut</option>
-            <option value="bed cover">Bed Cover</option>
-            <option value="kaos">Kaos</option>
-            <option value="lain">Lain-lain</option>
+            <option value="kiloan">kiloan</option>
+            <option value="selimut">selimut</option>
+            <option value="bed_cover">bed_cover</option>
+            <option value="kaos">kaos</option>
+            <option value="lain">lain</option>
           </select>
         </div>
         <div class="flex flex-col gap-3">
