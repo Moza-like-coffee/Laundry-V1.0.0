@@ -20,16 +20,17 @@ $user = $result->fetch_assoc();
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $new_password = $_POST['newpass'] ?? '';
-    
+  $new_password = $_POST['newpass'] ?? '';
 
-  // ini versi ada hashnya
-     // Validate new password
-     if (!empty($new_password)) {
-      // Update password in database (without hashing)
+  // Validate new password
+  if (!empty($new_password)) {
+      // Hash the password sebelum disimpan
+      $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
+
+      // Update password di database
       $update_query = "UPDATE tb_user SET password = ? WHERE id = ?";
       $update_stmt = $mysqli->prepare($update_query);
-      $update_stmt->bind_param("si", $new_password, $user_id);
+      $update_stmt->bind_param("si", $hashed_password, $user_id);
       
       if ($update_stmt->execute()) {
           $success_message = "Password berhasil diperbarui!";
@@ -40,6 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $error_message = "Password baru tidak boleh kosong!";
   }
 }
+
 //     // Versi ada ga ada
 //     if (!empty($new_password)) {
 

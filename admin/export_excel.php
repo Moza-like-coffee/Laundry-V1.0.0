@@ -5,7 +5,6 @@ include '../database/connect.php';
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
-// Ambil parameter filter yang sama dengan halaman laporan
 $tanggalAwal = isset($_GET['tanggal-awal']) ? $_GET['tanggal-awal'] : '';
 $tanggalAkhir = isset($_GET['tanggal-akhir']) ? $_GET['tanggal-akhir'] : '';
 $outlet = isset($_GET['outlet']) ? $_GET['outlet'] : '';
@@ -24,12 +23,12 @@ $sqlLaporan = "SELECT
     u.nama as kasir,
     COALESCE(SUM(td.qty * p.harga), 0) as total
   FROM tb_transaksi t
-  JOIN tb_outlet o ON t.id_outlet = o.id
+  LEFT JOIN tb_outlet o ON t.id_outlet = o.id
   JOIN tb_user u ON t.id_user = u.id
   LEFT JOIN tb_detail_transaksi td ON t.id = td.id_transaksi
   LEFT JOIN tb_paket p ON td.id_paket = p.id
   WHERE 1=1";
-  
+
 if (!empty($tanggalAwal) && !empty($tanggalAkhir)) {
     $sqlLaporan .= " AND t.tgl BETWEEN '$tanggalAwal' AND '$tanggalAkhir'";
 } elseif (!empty($tanggalAwal)) {
@@ -38,7 +37,7 @@ if (!empty($tanggalAwal) && !empty($tanggalAkhir)) {
     $sqlLaporan .= " AND t.tgl <= '$tanggalAkhir'";
 }
 
-if (!empty($outlet)) {
+if (!empty($outlet) && $outlet !== 'null') {
     $sqlLaporan .= " AND t.id_outlet = '$outlet'";
 }
 if (!empty($kasir)) {
@@ -54,21 +53,30 @@ if (!empty($statusPembayaran)) {
 $sqlLaporan .= " GROUP BY t.id";
 $resultLaporan = mysqli_query($mysqli, $sqlLaporan);
 
-// Buat spreadsheet baru
+// Ambil nama outlet (jika disaring)
+$outletName = 'Semua Outlet';
+if (!empty($outlet) && $outlet !== 'null') {
+    $queryOutlet = mysqli_query($mysqli, "SELECT nama FROM tb_outlet WHERE id = '$outlet'");
+    if ($resultOutlet = mysqli_fetch_assoc($queryOutlet)) {
+        $outletName = $resultOutlet['nama'];
+    } else {
+        $outletName = 'Tanpa Outlet';
+    }
+}
+
+// Buat spreadsheet
 $spreadsheet = new Spreadsheet();
 $sheet = $spreadsheet->getActiveSheet();
 
-// Header laporan
 $sheet->setCellValue('A1', 'LAPORAN TRANSAKSI');
 $sheet->mergeCells('A1:G1');
 $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
 $sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
 
-// Informasi filter
 $sheet->setCellValue('A2', 'Periode:');
-$sheet->setCellValue('B2', date('d M Y', strtotime($tanggalAwal)) . ' - ' . date('d M Y', strtotime($tanggalAkhir)));
+$sheet->setCellValue('B2', !empty($tanggalAwal) && !empty($tanggalAkhir) ? date('d M Y', strtotime($tanggalAwal)) . ' - ' . date('d M Y', strtotime($tanggalAkhir)) : '-');
 $sheet->setCellValue('A3', 'Outlet:');
-$sheet->setCellValue('B3', !empty($outlet) ? $outletName : 'Semua Outlet');
+$sheet->setCellValue('B3', $outletName);
 
 // Header tabel
 $sheet->setCellValue('A5', 'No. Invoice');
@@ -79,7 +87,7 @@ $sheet->setCellValue('E5', 'Status Pesanan');
 $sheet->setCellValue('F5', 'Status Pembayaran');
 $sheet->setCellValue('G5', 'Total');
 
-// Style untuk header tabel
+// Style header
 $headerStyle = [
     'font' => ['bold' => true],
     'alignment' => ['horizontal' => 'center'],
@@ -88,16 +96,16 @@ $headerStyle = [
 ];
 $sheet->getStyle('A5:G5')->applyFromArray($headerStyle);
 
-// Isi data
+// Data isi
 $row = 6;
 $totalPendapatan = 0;
 
 while ($transaksi = mysqli_fetch_assoc($resultLaporan)) {
     $sheet->setCellValue('A' . $row, $transaksi['kode_invoice']);
     $sheet->setCellValue('B' . $row, date('d M Y', strtotime($transaksi['tgl'])));
-    $sheet->setCellValue('C' . $row, $transaksi['outlet']);
+    $sheet->setCellValue('C' . $row, $transaksi['outlet'] ?? 'Tanpa Outlet');
     $sheet->setCellValue('D' . $row, $transaksi['kasir']);
-    
+
     $statusPesanan = '';
     switch ($transaksi['status']) {
         case 'baru': $statusPesanan = 'Baru'; break;
@@ -107,22 +115,22 @@ while ($transaksi = mysqli_fetch_assoc($resultLaporan)) {
         default: $statusPesanan = $transaksi['status'];
     }
     $sheet->setCellValue('E' . $row, $statusPesanan);
-    
+
     $statusBayar = ($transaksi['dibayar'] == 'dibayar') ? 'Dibayar' : 'Belum Dibayar';
     if ($transaksi['dibayar'] == 'dibayar' && !empty($transaksi['tgl_bayar'])) {
         $statusBayar .= "\n(" . date('d M Y', strtotime($transaksi['tgl_bayar'])) . ")";
     }
     $sheet->setCellValue('F' . $row, $statusBayar);
     $sheet->getStyle('F' . $row)->getAlignment()->setWrapText(true);
-    
+
     $sheet->setCellValue('G' . $row, $transaksi['total']);
     $sheet->getStyle('G' . $row)->getNumberFormat()->setFormatCode('#,##0');
-    
+
     $totalPendapatan += $transaksi['total'];
     $row++;
 }
 
-// Total pendapatan
+// Total
 $sheet->setCellValue('F' . $row, 'TOTAL PENDAPATAN:');
 $sheet->setCellValue('G' . $row, $totalPendapatan);
 $sheet->getStyle('F' . $row . ':G' . $row)->getFont()->setBold(true);
@@ -133,20 +141,16 @@ foreach (range('A', 'G') as $col) {
     $sheet->getColumnDimension($col)->setAutoSize(true);
 }
 
-// Border untuk data
+// Border isi data
 $dataStyle = [
     'borders' => [
-        'allBorders' => [
-            'borderStyle' => 'thin'
-        ]
+        'allBorders' => ['borderStyle' => 'thin']
     ]
 ];
-$sheet->getStyle('A5:G' . ($row-1))->applyFromArray($dataStyle);
+$sheet->getStyle('A5:G' . ($row - 1))->applyFromArray($dataStyle);
 
-// Set nama file
+// Output
 $filename = 'Laporan_Transaksi_' . date('Ymd_His') . '.xlsx';
-
-// Redirect output to a client's web browser (Xlsx)
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 header('Content-Disposition: attachment;filename="' . $filename . '"');
 header('Cache-Control: max-age=0');

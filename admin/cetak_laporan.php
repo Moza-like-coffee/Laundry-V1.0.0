@@ -17,6 +17,7 @@ $statusPesanan = isset($_GET['status-pesanan']) ? $_GET['status-pesanan'] : '';
 $statusPembayaran = isset($_GET['status-pembayaran']) ? $_GET['status-pembayaran'] : '';
 
 // Query untuk mendapatkan data laporan (same as in menu_laporan.php)
+// Query untuk mendapatkan data laporan (modified to handle NULL outlet)
 $sqlLaporan = "SELECT 
     t.id, 
     t.kode_invoice, 
@@ -24,16 +25,16 @@ $sqlLaporan = "SELECT
     t.tgl_bayar, 
     t.status, 
     t.dibayar, 
-    o.nama as outlet, 
-    u.nama as kasir,
+    COALESCE(o.nama, 'Tidak Ada Outlet') as outlet, 
+    COALESCE(u.nama, 'Tidak Ada Kasir') as kasir,
     COALESCE(SUM(td.qty * p.harga), 0) as total
   FROM tb_transaksi t
-  JOIN tb_outlet o ON t.id_outlet = o.id
-  JOIN tb_user u ON t.id_user = u.id
+  LEFT JOIN tb_outlet o ON t.id_outlet = o.id
+  LEFT JOIN tb_user u ON t.id_user = u.id
   LEFT JOIN tb_detail_transaksi td ON t.id = td.id_transaksi
   LEFT JOIN tb_paket p ON td.id_paket = p.id
   WHERE 1=1";
-  
+
 if (!empty($tanggalAwal) && !empty($tanggalAkhir)) {
     $sqlLaporan .= " AND t.tgl BETWEEN '$tanggalAwal' AND '$tanggalAkhir'";
 } elseif (!empty($tanggalAwal)) {
@@ -69,11 +70,14 @@ if (mysqli_num_rows($resultLaporan) > 0) {
 }
 
 // Get outlet name if filtered
+// Get outlet name if filtered
 $outletName = 'Semua Outlet';
 if (!empty($outlet)) {
     $outletQuery = mysqli_query($mysqli, "SELECT nama FROM tb_outlet WHERE id = '$outlet'");
     if ($outletRow = mysqli_fetch_assoc($outletQuery)) {
         $outletName = $outletRow['nama'];
+    } else {
+        $outletName = 'Tidak Ada Outlet';
     }
 }
 

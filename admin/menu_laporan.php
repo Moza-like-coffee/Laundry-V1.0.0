@@ -20,11 +20,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && (isset($_GET['tanggal-awal']) || iss
     t.tgl_bayar, 
     t.status, 
     t.dibayar, 
-    o.nama as outlet, 
+    COALESCE(o.nama, 'Tidak ada outlet') as outlet, 
     u.nama as kasir,
     COALESCE(SUM(td.qty * p.harga), 0) as total
   FROM tb_transaksi t
-  JOIN tb_outlet o ON t.id_outlet = o.id
+  LEFT JOIN tb_outlet o ON t.id_outlet = o.id
   JOIN tb_user u ON t.id_user = u.id
   LEFT JOIN tb_detail_transaksi td ON t.id = td.id_transaksi
   LEFT JOIN tb_paket p ON td.id_paket = p.id
@@ -40,8 +40,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && (isset($_GET['tanggal-awal']) || iss
     }
     
     if (!empty($outlet)) {
-        $sqlLaporan .= " AND t.id_outlet = '$outlet'";
-    }
+      $sqlLaporan .= " AND (t.id_outlet = '$outlet' OR t.id_outlet IS NULL)";
+  }
     if (!empty($kasir)) {
         $sqlLaporan .= " AND t.id_user = '$kasir'";
     }

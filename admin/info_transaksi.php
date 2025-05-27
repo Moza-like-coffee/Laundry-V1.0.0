@@ -6,19 +6,19 @@ include '../database/connect.php';
 $isAdmin = ($_SESSION['role'] ?? '') === 'admin';
 $outletId = $_SESSION['outlet_id'] ?? null;
 
-// Build query based on user role
+// Build query based on user role - sorted by tgl DESC (newest first)
 if ($isAdmin) {
     $query = "SELECT t.*, m.nama as nama_member, o.nama as nama_outlet 
               FROM tb_transaksi t
               JOIN tb_member m ON t.id_member = m.id
-              JOIN tb_outlet o ON t.id_outlet = o.id
+              LEFT JOIN tb_outlet o ON t.id_outlet = o.id
               ORDER BY t.tgl DESC";
 } else {
     $query = "SELECT t.*, m.nama as nama_member, o.nama as nama_outlet 
               FROM tb_transaksi t
               JOIN tb_member m ON t.id_member = m.id
-              JOIN tb_outlet o ON t.id_outlet = o.id
-              WHERE t.id_outlet = '$outletId'
+              LEFT JOIN tb_outlet o ON t.id_outlet = o.id
+              WHERE t.id_outlet = '$outletId' OR t.id_outlet IS NULL
               ORDER BY t.tgl DESC";
 }
 
@@ -36,7 +36,7 @@ $statusCounts = [
 if ($isAdmin) {
     $statusQuery = "SELECT status, COUNT(*) as count FROM tb_transaksi GROUP BY status";
 } else {
-    $statusQuery = "SELECT status, COUNT(*) as count FROM tb_transaksi WHERE id_outlet = '$outletId' GROUP BY status";
+    $statusQuery = "SELECT status, COUNT(*) as count FROM tb_transaksi WHERE id_outlet = '$outletId' OR id_outlet IS NULL GROUP BY status";
 }
 
 $statusResult = mysqli_query($mysqli, $statusQuery);
@@ -62,8 +62,6 @@ while ($row = mysqli_fetch_assoc($detailsResult)) {
     $totals[$row['id_transaksi']] = $row['subtotal'];
 }
 ?>
-
-
 
 <div class="space-y-6">
     <!-- Header Section - Mobile: Smaller padding, tighter spacing -->
@@ -175,7 +173,7 @@ while ($row = mysqli_fetch_assoc($detailsResult)) {
                             </td>
                             <?php if($isAdmin): ?>
                                 <td class="px-4 py-3 md:px-6 md:py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900"><?= htmlspecialchars($row['nama_outlet']) ?></div>
+                                    <div class="text-sm text-gray-900"><?= htmlspecialchars($row['nama_outlet'] ?? 'Tidak ada outlet') ?></div>
                                 </td>
                             <?php endif; ?>
                             <td class="px-4 py-3 md:px-6 md:py-4 whitespace-nowrap">
@@ -216,5 +214,3 @@ while ($row = mysqli_fetch_assoc($detailsResult)) {
         </div>
     <?php endif; ?>
 </div>
-
-
